@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!--
+        <link rel="stylesheet" href="../static/style.css">
+        -->
+        <!-- Bootstrap core CSS -->
+        <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom fonts for this template -->
+        <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- Custom styles for this template -->
+        <link href="../static/clean-blog.min.css" rel="stylesheet">
+
+        <title>Kinkip — miblog</title>
+    </head>
+
+    <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">MIBLOG</a>
+            <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="fa fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../">Home</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../blog/">Blog</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../projects/">Projects</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../about/">About</a></li>
+                    
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- page header -->
+    <header class="masthead" style="background-image: url('../static/Lake_Hayes_by_queenstown.jpg')">
+      <div class="overlay"></div>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="site-heading">
+              <h1>Miblog</h1>
+              <!--
+              <span class="subheading">Thoughts and ideas</span>
+              -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TODO: copy boostrap style -->
+    <!-- Main Content -->
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+        
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js" ></script>
+        <h2>Kinkip: nápověda pro hru Piknik</h2>
+        <div>
+        <div>
+            <strong>Stav aplikace:&nbsp;</strong>
+            <span id="ready">Nahrávám aplikaci</div>
+        </div>
+        <div>
+            <strong>Hledané znaky:&nbsp;</strong>
+            <input id="characters" value = "p i k n i k"></input>
+            <button id="execute" disabled = "1">Vylušti</button>
+        </div>
+        <br/>
+        <div id="result"></div>
+        </div>
+
+        <script>
+        $(document).ready (function () {
+
+            $("#characters").keyup (function (event) {
+                if (event.keyCode == 13) {
+                    $("execute").click ();
+                }}
+            );
+            $("#execute").keyup (function (event) {
+                if (event.keyCode == 13) {
+                    $("execute").click ();
+                }}
+            );
+            $("#ready").html ("Dokument nahrán, nahrávám databázi");
+        });
+        </script>
+        <script type="text/javascript" src="../static/kinkip.js" ></script>
+
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- footer -->
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-md-10 mx-auto">
+            <ul class="list-inline text-center">
+              <li class="list-inline-item">
+                <a href="mailto:michal.vyskocil@gmail.com">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-mail fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://twitter.com/vyskocilm">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://github.com/vyskocilm">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://www.facebook.com/michal.vyskocil.148">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+            </ul>
+            <p class="copyright text-muted">Copyright &copy; Michal Vyskocil 2018.<br/>Based on <a href="https://startbootstrap.com/template-overviews/clean-blog/">Bootstrap Clean Blog</a>, powered by <a href="https://getlektor.com">Lektor SCM</a></p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="../vendor/jquery/jquery.min.js"></script>
+    <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom scripts for this template -->
+    <script src="../static/clean-blog.min.js"></script>
+    </body>
+
+</html>

@@ -8,20 +8,20 @@
         <meta name="author" content="">
 
         <!--
-        <link rel="stylesheet" href="../static/style.css">
+        <link rel="stylesheet" href="../../static/style.css">
         -->
         <!-- Bootstrap core CSS -->
-        <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <link href="../../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
         <!-- Custom fonts for this template -->
-        <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href="../../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
         <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
         <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
 
         <!-- Custom styles for this template -->
-        <link href="../static/clean-blog.min.css" rel="stylesheet">
+        <link href="../../static/clean-blog.min.css" rel="stylesheet">
 
-        <title> — miblog</title>
+        <title>&#34;Modern&#34; Javascript development for oldies — miblog</title>
     </head>
 
     <body>
@@ -38,16 +38,16 @@
                 <ul class="navbar-nav ml-auto">
                     
                     <li class="nav-item" endif
-                        %}><a class="nav-link" href="../">Home</a></li>
+                        %}><a class="nav-link" href="../../">Home</a></li>
                     
                     <li class="nav-item" endif
-                        %}><a class="nav-link" href="../blog/">Blog</a></li>
+                        %}><a class="nav-link" href="../../blog/">Blog</a></li>
                     
                     <li class="nav-item" endif
-                        %}><a class="nav-link" href="../projects/">Projects</a></li>
+                        %}><a class="nav-link" href="../../projects/">Projects</a></li>
                     
                     <li class="nav-item" endif
-                        %}><a class="nav-link" href="../about/">About</a></li>
+                        %}><a class="nav-link" href="../../about/">About</a></li>
                     
 
                 </ul>
@@ -56,7 +56,7 @@
     </nav>
 
     <!-- page header -->
-    <header class="masthead" style="background-image: url('../static/Lake_Hayes_by_queenstown.jpg')">
+    <header class="masthead" style="background-image: url('../../static/Lake_Hayes_by_queenstown.jpg')">
       <div class="overlay"></div>
       <div class="container">
         <div class="row">
@@ -79,10 +79,9 @@
         <div class="col-lg-8 col-md-10 mx-auto">
         
   
-    
   <div class="blog-post">
   
-    <h2><a href="../blog/modern-javascript-development-for-oldies/">&#34;Modern&#34; Javascript development for oldies</a></h2>
+    <h2>&#34;Modern&#34; Javascript development for oldies</h2>
   
   <p class="meta">
     written by
@@ -135,126 +134,6 @@ xhr.onload = function (event) {
 <p>The result is <a href="/kipnik/index.html">Kipnik</a>, helper tool for <a href="https://play.google.com/store/apps/details?id=com.apnax.wordsnack.csk&hl=en">Piknik slov - Word Snack</a> game, which allows you to search for a words you can get from given range of characters. It is powered by <a href="https://github.com/kripken/sql.js">sql.js</a> and GNU FDL Czech - English dictionary from <a href="https://www.svobodneslovniky.cz/">svobodneslovniky.cz</a>. The beauty of it is that all operations are done client side. If properly cached, it works completely offline.</p>
 <p>The downside is the game is no longer fun to play :-)</p>
 
-  </div>
-
-  
-    
-  <div class="blog-post">
-  
-    <h2><a href="../blog/python-decorators-for-dummies/">Python decorators for dummies</a></h2>
-  
-  <p class="meta">
-    written by
-    
-      <a href="https://twitter.com/@vyskocilm">Michal Vyskocil</a>
-    
-    on 2018-01-23
-  </p>
-  <h2>About</h2><p><a href="https://www.python.org/dev/peps/pep-0318/">Python decoratos</a> is very powerful tool for Python developers. Most of the time I am on user side, however sometimes I need to write my own one. This post is my simple braindump on how to write it.</p><h2>Decorator without arguments</h2><pre>
-# to update wrapper function to looks like wrapped one, fixes stack traces, function name, and so
-from functools import wraps
-
-# name of decorator, to be used as @prnt
-def prnt (f):
-    # make wrapper looking like wrapped function f
-    @wraps (f)
-    def wrapper (*args, **kwargs):
-        # custom action called prior function call
-        print ("calling %s" % f.__name__)
-        # call function and return result
-        return f (*args, **kwargs)
-    # return wrapper function
-    return wrapper
-</pre><p>
-So usage is simple</p><pre>
-@prnt
-def func (i):
-    return i
-
-# usage
->>> func (42)
-calling func
-42
->>>
-</pre><h2>Decorator with arguments</h2><p>
-You can parametrize decorator itself. Typical example would be Flask's <code>app.route ("/url")</code> used to register route with function handler. Technically you're simply adding an another scope.</p><pre>
-from __future__ import print_function
-import sys
-# to update wrapper function to looks like wrapped one, fixes stack traces, function name, and so
-from functools import wraps
-
-# name of decorator, to be used as @prnt
-def prnt (out):
-    # this part will run during paring of function declaration
-    print ("out=%s" % out)
-    def wrapper_f (f):
-        # this runs after function is really called
-        # make wrapper looking like wrapped function f
-        @wraps (f)
-        def wrapper (*args, **kwargs):
-            # custom action called prior function call
-            print ("calling %s" % f.__name__, file=out)
-            # call function and return result
-            return f (*args, **kwargs)
-        # return wrapper function
-        return wrapper
-    return wrapper_f
-</pre><p>
-So usage is simple</p><pre>
-@prnt (sys.stderr)
-def func (i):
-    return i
-
-out=&lt;open file '&lt;stderr>', mode 'w' at 0x7f18b24571e0>
-
->>> func (1)
-calling func
-1
->>> 
-</pre><p>
-You can see that <code>prnt</code> with parameters is called during function declaration. Where code after <code>wrapper_f</code> is called only when function is called.</p>
-  </div>
-
-  
-    
-  <div class="blog-post">
-  
-    <h2><a href="../blog/make-your-usrlocal-user-writable/">Make your /usr/local user writable</a></h2>
-  
-  <p class="meta">
-    written by
-    
-      <a href="https://twitter.com/@vyskocilm">Michal Vyskocil</a>
-    
-    on 2018-01-21
-  </p>
-  <h2>About</h2><p>
-I am the long term user of Linux based operating systems.  And as a C developer mostly working on stuff built by GNU autotools. Therefor I need to quickly build, install and test new versions of the software. I usually make changes to lower layers (like <a href="https://github.com/zeromq/czmq/pull/1833">zeromq/czmq</a>).</p><p>
-Typical advice for Linux is  to <strong>not</strong> run things as a root!</p><h3>What is root</h3><blockquote>
-Linux operating systems are multi user ones. Each user account have own documents and
-can't interfere with others. Except
-root. Root is a super user. It takes it all. Permission checks are not applied
-to this user. Never!</blockquote><h2>The solution</h2><p>The standard installation target for autotools based <code>make install</code> is <code>/usr/local</code>. This is path can be written by root. There are many ways to do to avoid this problem. You can install using <code>sudo</code> helper. You can configure <code>--prefix</code> and related variables like <code>PATH</code>, <code>PKG_CONFIG_PATH</code>, <code>LD_LIBRARY_PATH</code> and so.</p><p>
-Or there is way more simpler thing to do
-<pre>
-$ sudo chown $myuser: /usr/local
-</pre></p><p>
-This is a tip from <a href="http://hintjens.com">Pieter Hintjens's</a> book <a
-href="https://hintjens.gitbooks.io/scalable-c/content/chapter1.html">Scalable
-C</a>. I actually used all three ways, however cannot be more happy with user writable <code>/usr/local</code>.</p>
-  </div>
-
-  
-
-  
-  <div class="pagination">
-    
-      <span class="disabled">&laquo; Previous</span>
-    
-    | 1 |
-    
-      <span class="disabled">Next &raquo;</span>
-    
   </div>
 
 
@@ -310,11 +189,11 @@ C</a>. I actually used all three ways, however cannot be more happy with user wr
     </footer>
 
     <!-- Bootstrap core JavaScript -->
-    <script src="../vendor/jquery/jquery.min.js"></script>
-    <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../../vendor/jquery/jquery.min.js"></script>
+    <script src="../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
     <!-- Custom scripts for this template -->
-    <script src="../static/clean-blog.min.js"></script>
+    <script src="../../static/clean-blog.min.js"></script>
     </body>
 
 </html>

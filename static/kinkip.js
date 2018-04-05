@@ -1,10 +1,5 @@
 // KINKIP algo
 
-// array to store result
-var RESULTS = {};
-// array to store characters
-var CHARS = [];
-
 // return true if word contains all characters from chars
 function match_chars (word, _chars) {
     var chars = _chars.slice ();
@@ -18,6 +13,40 @@ function match_chars (word, _chars) {
 
     return true;
 }
+
+function Kinpik () {
+    this.results = {};
+    this.chars = [];
+}
+
+Kinpik.prototype.setChars = function (text) {
+    this.results = {};
+    this.chars = Array.from (text).filter (ch => ! /\s/.test (ch)).map (ch => ch.toLowerCase ());
+    return this;
+}
+
+Kinpik.prototype.charsLength = function () {
+    return this.chars.length;
+}
+
+Kinpik.prototype.addIf = function (word) {
+    if (match_chars (word, this.chars)) {
+        this.results [word] = true;
+    }
+}
+
+Kinpik.prototype.html = function () {
+    let _html = "<h2>Výsledek</h2><pre>\n";
+    Object.keys (this.results).forEach (function (key) {
+        //console.log (key);
+        _html += "    " + key + "\n";
+    });
+    _html += "</pre>";
+    return _html;
+}
+
+// New object based interafce
+var kp = new Kinpik ();
 
 // initialize worker
 var worker = new Worker("/static/worker.sql.js"); // You can find worker.sql.js in this repo
@@ -38,22 +67,12 @@ function sql_result (event) {
 
     for (let result of event.data.results) {
         for (let value of result.values) {
-            var word = value [0];
-            if (match_chars (word, CHARS)) {
-                RESULTS [word] = true;
-            }
+            let word = value [0];
+            kp.addIf (word);
         }
     }
 
-    console.log (RESULTS);
-    var k;
-    var _html = "<h2>Výsledek</h2><pre>\n";
-    Object.keys (RESULTS).forEach (function (key) {
-        //console.log (key);
-        _html += "    " + key + "\n";
-    });
-    _html += "</pre>";
-    $("#result").html (_html);
+    $("#result").html (kp.html ());
 }
 
 // GET database and enable button if OK
@@ -81,17 +100,15 @@ xhr.send();
 $("#execute").click (function () {
     // here will be the major functionality, righ now push some random query
 
-    console.log ("#execute.click ()");
-    CHARS = $("#characters").val ().split (/\s+/);
-    if (CHARS.length < 3) {
+    kp.setChars ($("#characters").val ());
+    if (kp.charsLength () < 3) {
         return;
     }
 
-    RESULTS = {};
     id++;
     worker.postMessage ({
         id: id,
         action: 'exec',
-        sql: 'SELECT cz from dct WHERE LENGTH (cz) >= 2 AND LENGTH (cz) <= ' + CHARS.length + ' ORDER BY LENGTH (cz) DESC'
+        sql: 'SELECT cz from dct WHERE LENGTH (cz) >= 2 AND LENGTH (cz) <= ' + kp.charsLength () + ' ORDER BY LENGTH (cz) DESC'
     });
 });

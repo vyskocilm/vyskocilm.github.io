@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!--
+        <link rel="stylesheet" href="../../static/style.css">
+        -->
+        <!-- Bootstrap core CSS -->
+        <link href="../../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom fonts for this template -->
+        <link href="../../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- Custom styles for this template -->
+        <link href="../../static/clean-blog.min.css" rel="stylesheet">
+
+        <title>Limiting your goroutines — miblog</title>
+    </head>
+
+    <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">MIBLOG</a>
+            <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="fa fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../">Home</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../blog/">Blog</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../projects/">Projects</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../about/">About</a></li>
+                    
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- page header -->
+    <header class="masthead" style="background-image: url('../../static/Lake_Hayes_by_queenstown.jpg')">
+      <div class="overlay"></div>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="site-heading">
+              <h1>Miblog</h1>
+              <!--
+              <span class="subheading">Thoughts and ideas</span>
+              -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TODO: copy boostrap style -->
+    <!-- Main Content -->
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+        
+  
+  <div class="blog-post">
+  
+    <h2>Limiting your goroutines</h2>
+  
+  <p class="meta">
+    written by
+    
+      <a href="https://twitter.com/vyskocilm">Michal Vyskocil</a>
+    
+    on 2018-10-10
+  </p>
+  <h1>Limiting your goroutines</h1><p>
+How to properly implement goroutine pool in golang with input and output channel(s). Text expects knowledge about <a href="https://golang.org/">golang</a> and about <a href="https://tour.golang.org/concurrency/1">Go Concurency</a>. That means I am not going to explain what goroutine, channel or defer actually are.
+</p><h2>Intro</h2>
+<p>
+Gorutines are some kind of lightweight threads managed by userspace golang runtime. They save memory and context switches. Therefor it is possible to spawn literally <a href="https://rcoh.me/posts/why-you-can-have-a-million-go-routines-but-only-1000-java-threads/">Millions!</a> of them.  However as BenPar^W Voltaire said
+<p/>
+
+<p>
+<img src="https://media.licdn.com/media/gcrc/dms/image/C4E12AQFoCyvG3y_XEA/article-cover_image-shrink_600_2000/0?e=1544659200&v=beta&t=nNlZk3EjA5HecFvdl52P0qsWxmeuBbLq81ESKDa04ms" alt="With great power comes great responsibility" />
+<a href="https://www.linkedin.com/pulse/quote-great-power-comes-responsibility-voltaire-mba-bsee/">Source: linkedin</a>
+</p>
+
+<p>
+It is not always practical to spawn your task million times. For example when you need to crawl web pages. It's good idea to NOT do it millions of times at the same time. On the other hand this is EXACTLY the kind of task golang and its goroutines shines at. The way of solving it is called <strong>pool</strong>, or workers, task queue, whatever you want. The idea is the same, we have a huge number N of tasks, which will be distributed to smaller number P of goroutines. Each goroutine will read next input from the channel, do the work and return result on a channel. This way we can parameterize the number of concurrent tasks we run. We can measure speed of execution using different numbers.  Or we can ensure our code can deal with huge input without crashing the world :-)
+</p>
+
+<h2>Deadlocks everywhere</h2><p>The situation looks simple. Golang is an advanced language with builtin support for goroutines and concurrency. One just need to search the internet a bit to find an example. Knowing very little about golang, I naturally came to <a href="https://stackoverflow.com/questions/29342701/write-to-same-channel-with-multiple-goroutines">StackOverflow</a> to get the examples of READing data from the go channel. And the <a href="https://play.golang.org/p/ESq9he_WzS">code</a> looked simple and printed all numbers. That means we can <strong>distribute</strong> data from one channel and <strong>consume</strong> them from go routines. And golang runtime will make the magic behind to make this happen.</p><p>
+So let's add writing to the an another output channel. We will read it from main thread and everything should work! Something like <a href="https://gobyexample.com/worker-pools">Worker pools @gobyexample.com</a>.
+</p><p>
+And BAM! Code deadlock!
+</p><p>
+<img src="http://nikolar.com/wp-content/uploads/2013/09/trafficDeadlock.jpg" alt="deadlock"/>
+<a href="http://nikolar.com/tag/deadlock/">Source: nikolar.com</a>
+
+<p>
+Program crashed and never print anything. Panic mode started. To make the long story short. Here is the key
+</p><blockquote>
+You MUST read from channel you're writing into, or BAD things will happen.
+</blockquote><p>
+My code was structured this way
+<ol>
+<li>After some init, create P goroutines and execute them</li>
+<li>Write data to input channel</li>
+<li>Read results from output channel</li>
+</ol>
+
+But program stopped in part 2, so reading of the data never happened, which blocked the send part inside goroutines, ... there is no better word than <strong>deadlock</strong> to describe the situation.
+</p><p><h2>The solution</h2></p>
+<p>
+ Fortunately golang provides a simple way to fix it. <em>Offload the second part to goroutine</em>. We can read from output channel immediately from main thread. Full code available on <a href="https://play.golang.org/p/hTHhgZy-KvV">https://play.golang.org</a> or below
+</p><script src="https://gist.github.com/vyskocilm/d0c1a2f57a9b0821c00f31190c167781.js"></script>
+  </div>
+
+
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- footer -->
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-md-10 mx-auto">
+            <ul class="list-inline text-center">
+              <li class="list-inline-item">
+                <a href="mailto:michal.vyskocil@gmail.com">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-mail fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://twitter.com/vyskocilm">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://github.com/vyskocilm">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://www.facebook.com/michal.vyskocil.148">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+            </ul>
+            <p class="copyright text-muted">Copyright &copy; Michal Vyskocil 2018.<br/>Based on <a href="https://startbootstrap.com/template-overviews/clean-blog/">Bootstrap Clean Blog</a>, powered by <a href="https://getlektor.com">Lektor SCM</a></p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="../../vendor/jquery/jquery.min.js"></script>
+    <script src="../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom scripts for this template -->
+    <script src="../../static/clean-blog.min.js"></script>
+    </body>
+
+</html>

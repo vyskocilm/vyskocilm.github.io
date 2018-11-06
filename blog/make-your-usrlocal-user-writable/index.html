@@ -91,19 +91,24 @@
     on 2018-01-21
   </p>
   <h2>About</h2><p>
-I am the long term user of Linux based operating systems.  And as a C developer mostly working on stuff built by GNU autotools. Therefor I need to quickly build, install and test new versions of the software. I usually make changes to lower layers (like <a href="https://github.com/zeromq/czmq/pull/1833">zeromq/czmq</a>).</p><p>
-Typical advice for Linux is  to <strong>not</strong> run things as a root!</p><h3>What is root</h3><blockquote>
+I am the long term user of Linux based operating systems.  And as a C developer mostly working on stuff built by GNU autotools. Therefor I need to quickly build, install and test new versions of the software. I usually make changes to lower layers (like <a href="https://github.com/zeromq/czmq/pull/1833">zeromq/czmq</a>).
+</p><p>
+Typical advice for Linux is  to <strong>not</strong> run things as a root!
+</p><h3>What is root</h3><blockquote>
 Linux operating systems are multi user ones. Each user account have own documents and
 can't interfere with others. Except
 root. Root is a super user. It takes it all. Permission checks are not applied
-to this user. Never!</blockquote><h2>The solution</h2><p>The standard installation target for autotools based <code>make install</code> is <code>/usr/local</code>. This is path can be written by root. There are many ways to do to avoid this problem. You can install using <code>sudo</code> helper. You can configure <code>--prefix</code> and related variables like <code>PATH</code>, <code>PKG_CONFIG_PATH</code>, <code>LD_LIBRARY_PATH</code> and so.</p><p>
+to this user. Never!
+</blockquote><h2>The solution</h2><p>The standard installation target for autotools based <code>make install</code> is <code>/usr/local</code>. This is path can be written by root. There are many ways to do to avoid this problem. You can install using <code>sudo</code> helper. You can configure <code>--prefix</code> and related variables like <code>PATH</code>, <code>PKG_CONFIG_PATH</code>, <code>LD_LIBRARY_PATH</code> and so.</p><p>
 Or there is way more simpler thing to do
 <pre>
 $ sudo chown $myuser: /usr/local
-</pre></p><p>
+</pre>
+</p><p>
 This is a tip from <a href="http://hintjens.com">Pieter Hintjens's</a> book <a
 href="https://hintjens.gitbooks.io/scalable-c/content/chapter1.html">Scalable
-C</a>. I actually used all three ways, however cannot be more happy with user writable <code>/usr/local</code>.</p>
+C</a>. I actually used all three ways, however cannot be more happy with user writable <code>/usr/local</code>.
+</p>
   </div>
 
 

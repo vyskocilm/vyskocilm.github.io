@@ -106,7 +106,8 @@ def prnt (f):
     # return wrapper function
     return wrapper
 </pre><p>
-So usage is simple</p><pre>
+So usage is simple
+</p><pre>
 @prnt
 def func (i):
     return i
@@ -117,7 +118,8 @@ calling func
 42
 >>>
 </pre><h2>Decorator with arguments</h2><p>
-You can parametrize decorator itself. Typical example would be Flask's <code>app.route ("/url")</code> used to register route with function handler. Technically you're simply adding an another scope.</p><pre>
+You can parametrize decorator itself. Typical example would be Flask's <code>app.route ("/url")</code> used to register route with function handler. Technically you're simply adding an another scope.
+</p><pre>
 from __future__ import print_function
 import sys
 # to update wrapper function to looks like wrapped one, fixes stack traces, function name, and so
@@ -140,7 +142,8 @@ def prnt (out):
         return wrapper
     return wrapper_f
 </pre><p>
-So usage is simple</p><pre>
+So usage is simple
+</p><pre>
 @prnt (sys.stderr)
 def func (i):
     return i
@@ -152,7 +155,8 @@ calling func
 1
 >>> 
 </pre><p>
-You can see that <code>prnt</code> with parameters is called during function declaration. Where code after <code>wrapper_f</code> is called only when function is called.</p>
+You can see that <code>prnt</code> with parameters is called during function declaration. Where code after <code>wrapper_f</code> is called only when function is called.
+</p>
   </div>
 
 

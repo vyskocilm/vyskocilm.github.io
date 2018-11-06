@@ -21,7 +21,7 @@
         <!-- Custom styles for this template -->
         <link href="../static/clean-blog.min.css" rel="stylesheet">
 
-        <title>Projects — miblog</title>
+        <title>qrget: easy to use privacy oriented cloudless file sharing — miblog</title>
     </head>
 
     <body>
@@ -78,42 +78,60 @@
       <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
         
-  <h2>Projects</h2>
-  <p>Some nice things I did in the past</p>
+  <h2>qrget: easy to use privacy oriented cloudless file sharing</h2>
+  <h1>The Problem</h1><p><a href="https://github.com/you"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a></p>
+<p>
+How to transfer files from my laptop to my cell phone.<br/>
+<a href="https://github.com/vyskocilm/qrget#installation"><img alt="qrget screenshot" src="https://raw.githubusercontent.com/vyskocilm/qrget/master/doc/screenshot.png"/></a>
+</p><h1>Why is this a problem?</h1>
+<p>
+Actually there are plenty of solutions there
 <ul>
-  <li>
-    <strong><a href="/qrget/index.html">qrget</a></strong>: easy to use privacy oriented file sharing
-  </li>
-
-  <li>
-    <strong><a href="/kinkip/index.html">Kinkip</strong>: JS Helper for Piknik game
-  </li>
-
-  <li>
-    <strong><a href="https://github.com/zeromq">zeromq contributions</strong>:
-<p>
-<a href="https://github.com/zeromq/zproto/blob/master/src/zproto_dot.gsl">Graphviz support</a> generating state machine <a href="https://github.com/zeromq/malamute/blob/master/src/mlm_client.svg">diagrams</a> for client and server. 
-</p>
-
-<p>
-Added <a href="https://github.com/zeromq/zproto/commit/55fb88a3b2cfda1cc3ceec1e00b0fe95d1d16f14">API model</a> generator for <code>zproto_codec_c</code> and <code>zproto_codec_c_v1</code>.
-</p>
-
-<p>
-<a href="https://github.com/zeromq/zproto/commit/570542874f1b2de6735a28094f67d32a63807b2f">Added</a> methods loading and saving <code>zproto</code> generated messages as <a href="https://rfc.zeromq.org/spec:4/ZPL/">ZPL</code>.
-</p>
-</li>
-
-<li>
-<strong><a href="https://github.com/zeromq/zproject/">zeromq/zproject</a></strong> ...
-</li>
-<li>
-<strong><a href="https://github.com/zeromq/czmq">zeromq/czmq</a></strong> ...
-</li>
-<li>
-<strong><a href="https://github.com/openSUSE/osc">openSUSE/osc</a></strong>
-</li>
+<li>Cloud based sharing: Google Disc, Dropbox, (Next|Own)Cloud, old fashioned FTP, SFTP, sending emails, Facebook Messenger, ...</li>
+<li>Bluetooth</li>
+<li>NFC</li>
+<li>USB transfer</li>
+<li>...maybe there are more options there ...</li>
 </ul>
+</p>
+
+<p>
+The key factor is that except Cloud based methods I would not call others as simple to use. I saw too many times Bluetooth unable to connect between various devices, or there are some machines, which lacks Bluetooth or NFC completely. USB cable is easier. It's almost always plugged in order to charge the phone, isn't it? But hell, what is <a href="https://www.howtogeek.com/192732/android-usb-connections-explained-mtp-ptp-and-usb-mass-storage/">MTP, PTP and where is my loved USB Mass Storage mode</a>?<br/>
+For a Cloud ... it simply does not feel right that we can't use decentralized technology (TCP/IP, HTTP) without a dependency on centralized server(s) somewhere. Geek inside me shouts: <strong>Devices MUST talk directly</strong>.
+</p>
+
+<h1>The past</h1><p>I simply run Python builtin http server to server the files. I found the process as easy until I saw the empty faces of others seeing the steps I was doing:</p>
+<ol>
+<li>Run <a href="https://python.org">Python</a> builtin http server somewhere
+<pre>
+python3 -m http.server
+</pre> 
+</li>
+<li>Find IP address using <code>ip adds show</code> in a similarly looking blob of text
+<pre>
+2: wlp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 10:f0:05:07:75:ab brd ff:ff:ff:ff:ff:ff
+    inet 192.168.1.203/24 brd 192.168.1.255 scope global dynamic noprefixroute wlp2s0
+       valid_lft 40987sec preferred_lft 40987sec
+    inet6 fdde:4e79:189f::960/128 scope global noprefixroute 
+       valid_lft forever preferred_lft forever
+</pre>
+</li>
+<li>Type the weird looking URL to phone browser
+<pre>
+http://192.168.1.203:8000/
+</pre>
+</li>
+<li>Browse, choose file and download</li>
+</ol><h1>Simplicity</h1><blockuote>
+“That’s been one of my mantras — focus and simplicity. Simple can be harder than complex: You have to work hard to get your thinking clean to make it simple. But it’s worth it in the end because once you get there, you can move mountains.”
+<br/><br/>
+Steve Jobs, BusinessWeek, May 25, 1998
+</blockuote><p>
+It is obvious that while using python HTTP server makes things doable for computer geeks, it's not the way regular can reproduce. The major design goal is simplicity, low number of dependencies and easy of use. Qrget is standalone binary, which prints QR Code to be consumed by phone and makes files or directories available using regular HTTP protocol. The only one assumption is that the computer is connected to the same <strong>wireless</strong> network.
+</p><p>
+Interested? Visit <a href="https://github.com/vyskocilm/qrget">qrget's github page</a>.
+</p>
 
         </div>
       </div>

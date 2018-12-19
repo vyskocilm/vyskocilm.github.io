@@ -82,6 +82,106 @@
     
   <div class="blog-post">
   
+    <h2><a href="../blog/golang-cors-and-testing/">Golang, CORS and testing</a></h2>
+  
+  <p class="meta">
+    written by
+    
+      <a href="https://twitter.com/@vyskocilm">Michal Vyskocil</a>
+    
+    on 2018-12-18
+  </p>
+  <h1></h1><p>
+Working on a web project spread in more domains brings you to <a href="https://www.html5rocks.com/en/tutorials/cors/">Cross-Origin Resource Sharing</a>. Browsers use it to if it code from one origin can call HTTP methods placed elsewhere. Responses must contain specific headers, like <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin">Access-Control-Allow-Origin</a>, which must match requesting <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin">Origin</a> of the site issuing the call. More information about CORS can be found at <a href="https://www.html5rocks.com/en/tutorials/cors/">html5rocks</a>.
+</p><p>
+CORS look like simple thing to develop. Just add a few HTTP headers for regular methods. Then you must handle <code>OPTIONS</code>, then you must know all the headers you're sending, figure out how will your application behave if <code>Origin</code> matches and if not. Therefor it is a good idea to use existing library doing so. For golang applications there is <a href="https://github.com/rs/cors">github.com/rs/cors</a>. <code>net/http</code> compatible middleware, which wraps all handlers and apply CORS rules based on configuration. Usage is very simple, one just create instance of <code>cors.Cors</code>, <code>http.ServeMux</code> and register handlers. The question is then - <em>how to test the CORS as a part of <code>testing</code> routine?</em>.
+</p><h2>Handler and HandlerFunc</h2><p>
+HTTP handling is done in simple function with two mandatory arguments.
+<pre>
+func(w http.ResponseWriter, r *http.Request)
+</pre>
+where <code>http.ResponseWritter</code> is code providing methods writing HTTP reply and <code>http.Request</code> provides data from HTTP request. Functions are represented as <em>interface</em> <code>http.Handler</code>. It has only one method
+<pre>
+type Handler interface {
+        ServeHTTP(ResponseWriter, *Request)
+}
+</pre>
+<p>
+
+<p>
+Beauty of this system is simplicity and the fact <code>ResponseWritter</code> is <em>interface</em> enables unit testing via <code>httptest.NewRecorder</code>.
+<pre>
+req := httptest.NewRequest("GET", "http://example.com/foo", nil)
+w := httptest.NewRecorder()
+handler(w, req)
+</pre>
+</p><h2>Handlers all the way down</h2><script src="https://gist.github.com/vyskocilm/9f6ea49623470e4c98052ed62f4e6845.js"></script><p>
+The main trick is here
+<pre>
+func Middleware(h http.Handler) http.Handler
+</pre>
+<code>http.ServeMux</code> is new type we have not talked before. It registers more handling functions and dispatch them based on request URL. And because it implements <code>http.Handler</code> interface, it is easy to join it with <code>Middleware</code> function and make them working together. The integration is simply done by calling <code>ServeHTTP</code> method. This is <em>exactly</em> how  <code>cors.Cors</code> is integrated to your application, by the way.
+</p><h2>CORS and testing</h2>
+<p>
+As we have discussed before, golang supports HTTP handlers testing via <code>httptest.NewRecorder</code>. This implements <code>http.ResponseWritter</code> interface, so it is easy to run handler function. The main trick is to get CORS enabled <code>http.Handler</code> in the test and call it. 
+</p>
+
+<pre>
+// main.go
+cors = cors.Default()                  // initialize global variable cors.Cors
+mux = http.NewServeMux() // initialize new serve mux
+
+// main_test.go
+r := http.NewRequest(....)
+w := httptest.NewRecorder()
+handler := cors.Handler(mux) // THE TRICK!
+handler.ServeHTTP(w, r)
+</pre>
+
+<h2>An example</h2><p>
+Here is the full working example integrating CORS to simple http server. <code>ServeMux</code> and <code>cors.Cors</code> are now wrapped in <code>Srv</code> structure, so we can access the right handler in the test.
+</p><p>
+First, the proof, that CORS works well
+</p><pre>
+$ curl -v -H Origin:http://example.com http://localhost:8000
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 8000 (#0)
+> GET / HTTP/1.1
+> Host: localhost:8000
+> User-Agent: curl/7.62.0
+> Accept: */*
+> Origin:http://example.com
+> 
+&lt; HTTP/1.1 200 OK
+<strong>&lt; Access-Control-Allow-Origin: *
+&lt; Vary: Origin</strong>
+&lt; Date: Tue, 18 Dec 2018 14:16:56 GMT
+&lt; Content-Length: 25
+&lt; Content-Type: text/html; charset=utf-8
+&lt; 
+&lt;html>Hello world&lt;/html>
+* Connection #0 to host localhost left intact
+</pre><p>
+And the source code + test.
+</p>
+<script src="https://gist.github.com/vyskocilm/3007ce0754d86b7e7b0754383b46b2a1.js"></script>
+
+<p>
+Major takeways
+<ul>
+<li>It is usually better to use battle tested code even for simple looking problem</li>
+<li><code>net/http</code> is simple yet powerful library providing great abstractions to build on top of</li>
+<li>Testing is important and there should be always the way to write testable code</li>
+<li>Working example of unit test for CORS integartion in golang application</li>
+</ul>
+</p>
+  </div>
+
+  
+    
+  <div class="blog-post">
+  
     <h2><a href="../blog/go-111-modules-monorepo-and-shared-code/">go 1.11 modules, monorepo and shared code</a></h2>
   
   <p class="meta">

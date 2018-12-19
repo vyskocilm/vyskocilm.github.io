@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!--
+        <link rel="stylesheet" href="../../static/style.css">
+        -->
+        <!-- Bootstrap core CSS -->
+        <link href="../../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom fonts for this template -->
+        <link href="../../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- Custom styles for this template -->
+        <link href="../../static/clean-blog.min.css" rel="stylesheet">
+
+        <title>Golang, CORS and testing — miblog</title>
+    </head>
+
+    <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">MIBLOG</a>
+            <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="fa fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../">Home</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../blog/">Blog</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../projects/">Projects</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../about/">About</a></li>
+                    
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- page header -->
+    <header class="masthead" style="background-image: url('../../static/Lake_Hayes_by_queenstown.jpg')">
+      <div class="overlay"></div>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="site-heading">
+              <h1>Miblog</h1>
+              <!--
+              <span class="subheading">Thoughts and ideas</span>
+              -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TODO: copy boostrap style -->
+    <!-- Main Content -->
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+        
+  
+  <div class="blog-post">
+  
+    <h2>Golang, CORS and testing</h2>
+  
+  <p class="meta">
+    written by
+    
+      <a href="https://twitter.com/@vyskocilm">Michal Vyskocil</a>
+    
+    on 2018-12-18
+  </p>
+  <h1></h1><p>
+Working on a web project spread in more domains brings you to <a href="https://www.html5rocks.com/en/tutorials/cors/">Cross-Origin Resource Sharing</a>. Browsers use it to if it code from one origin can call HTTP methods placed elsewhere. Responses must contain specific headers, like <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin">Access-Control-Allow-Origin</a>, which must match requesting <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin">Origin</a> of the site issuing the call. More information about CORS can be found at <a href="https://www.html5rocks.com/en/tutorials/cors/">html5rocks</a>.
+</p><p>
+CORS look like simple thing to develop. Just add a few HTTP headers for regular methods. Then you must handle <code>OPTIONS</code>, then you must know all the headers you're sending, figure out how will your application behave if <code>Origin</code> matches and if not. Therefor it is a good idea to use existing library doing so. For golang applications there is <a href="https://github.com/rs/cors">github.com/rs/cors</a>. <code>net/http</code> compatible middleware, which wraps all handlers and apply CORS rules based on configuration. Usage is very simple, one just create instance of <code>cors.Cors</code>, <code>http.ServeMux</code> and register handlers. The question is then - <em>how to test the CORS as a part of <code>testing</code> routine?</em>.
+</p><h2>Handler and HandlerFunc</h2><p>
+HTTP handling is done in simple function with two mandatory arguments.
+<pre>
+func(w http.ResponseWriter, r *http.Request)
+</pre>
+where <code>http.ResponseWritter</code> is code providing methods writing HTTP reply and <code>http.Request</code> provides data from HTTP request. Functions are represented as <em>interface</em> <code>http.Handler</code>. It has only one method
+<pre>
+type Handler interface {
+        ServeHTTP(ResponseWriter, *Request)
+}
+</pre>
+<p>
+
+<p>
+Beauty of this system is simplicity and the fact <code>ResponseWritter</code> is <em>interface</em> enables unit testing via <code>httptest.NewRecorder</code>.
+<pre>
+req := httptest.NewRequest("GET", "http://example.com/foo", nil)
+w := httptest.NewRecorder()
+handler(w, req)
+</pre>
+</p><h2>Handlers all the way down</h2><script src="https://gist.github.com/vyskocilm/9f6ea49623470e4c98052ed62f4e6845.js"></script><p>
+The main trick is here
+<pre>
+func Middleware(h http.Handler) http.Handler
+</pre>
+<code>http.ServeMux</code> is new type we have not talked before. It registers more handling functions and dispatch them based on request URL. And because it implements <code>http.Handler</code> interface, it is easy to join it with <code>Middleware</code> function and make them working together. The integration is simply done by calling <code>ServeHTTP</code> method. This is <em>exactly</em> how  <code>cors.Cors</code> is integrated to your application, by the way.
+</p><h2>CORS and testing</h2>
+<p>
+As we have discussed before, golang supports HTTP handlers testing via <code>httptest.NewRecorder</code>. This implements <code>http.ResponseWritter</code> interface, so it is easy to run handler function. The main trick is to get CORS enabled <code>http.Handler</code> in the test and call it. 
+</p>
+
+<pre>
+// main.go
+cors = cors.Default()                  // initialize global variable cors.Cors
+mux = http.NewServeMux() // initialize new serve mux
+
+// main_test.go
+r := http.NewRequest(....)
+w := httptest.NewRecorder()
+handler := cors.Handler(mux) // THE TRICK!
+handler.ServeHTTP(w, r)
+</pre>
+
+<h2>An example</h2><p>
+Here is the full working example integrating CORS to simple http server. <code>ServeMux</code> and <code>cors.Cors</code> are now wrapped in <code>Srv</code> structure, so we can access the right handler in the test.
+</p><p>
+First, the proof, that CORS works well
+</p><pre>
+$ curl -v -H Origin:http://example.com http://localhost:8000
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 8000 (#0)
+> GET / HTTP/1.1
+> Host: localhost:8000
+> User-Agent: curl/7.62.0
+> Accept: */*
+> Origin:http://example.com
+> 
+&lt; HTTP/1.1 200 OK
+<strong>&lt; Access-Control-Allow-Origin: *
+&lt; Vary: Origin</strong>
+&lt; Date: Tue, 18 Dec 2018 14:16:56 GMT
+&lt; Content-Length: 25
+&lt; Content-Type: text/html; charset=utf-8
+&lt; 
+&lt;html>Hello world&lt;/html>
+* Connection #0 to host localhost left intact
+</pre><p>
+And the source code + test.
+</p>
+<script src="https://gist.github.com/vyskocilm/3007ce0754d86b7e7b0754383b46b2a1.js"></script>
+
+<p>
+Major takeways
+<ul>
+<li>It is usually better to use battle tested code even for simple looking problem</li>
+<li><code>net/http</code> is simple yet powerful library providing great abstractions to build on top of</li>
+<li>Testing is important and there should be always the way to write testable code</li>
+<li>Working example of unit test for CORS integartion in golang application</li>
+</ul>
+</p>
+  </div>
+
+
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- footer -->
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-md-10 mx-auto">
+            <ul class="list-inline text-center">
+              <li class="list-inline-item">
+                <a href="mailto:michal.vyskocil@gmail.com">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-mail fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://twitter.com/vyskocilm">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://github.com/vyskocilm">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://www.facebook.com/michal.vyskocil.148">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+            </ul>
+            <p class="copyright text-muted">Copyright &copy; Michal Vyskocil 2018.<br/>Based on <a href="https://startbootstrap.com/template-overviews/clean-blog/">Bootstrap Clean Blog</a>, powered by <a href="https://getlektor.com">Lektor SCM</a></p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="../../vendor/jquery/jquery.min.js"></script>
+    <script src="../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom scripts for this template -->
+    <script src="../../static/clean-blog.min.js"></script>
+    </body>
+
+</html>

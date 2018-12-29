@@ -82,6 +82,25 @@
     
   <div class="blog-post">
   
+    <h2><a href="../blog/adblocking-in-turris-omnia/">Adblocking in Turris Omnia</a></h2>
+  
+  <p class="meta">
+    written by
+    
+      <a href="https://twitter.com/vyskocilm">Michal Vyskocil</a>
+    
+    on 2018-12-29
+  </p>
+  
+  <p>
+As a long time Firefox user I was horrified to use web browser with very limited blocking capabilities. However Samsung Browser is very handy tool for some sites. However the number of spam, scam, or porn pages and advertisements makes browsing...
+  
+  </div>
+
+  
+    
+  <div class="blog-post">
+  
     <h2><a href="../blog/golang-cors-and-testing/">Golang, CORS and testing</a></h2>
   
   <p class="meta">
@@ -91,91 +110,10 @@
     
     on 2018-12-18
   </p>
+  
   <h1></h1><p>
-Working on a web project spread in more domains brings you to <a href="https://www.html5rocks.com/en/tutorials/cors/">Cross-Origin Resource Sharing</a>. Browsers use it to if it code from one origin can call HTTP methods placed elsewhere. Responses must contain specific headers, like <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin">Access-Control-Allow-Origin</a>, which must match requesting <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin">Origin</a> of the site issuing the call. More information about CORS can be found at <a href="https://www.html5rocks.com/en/tutorials/cors/">html5rocks</a>.
-</p><p>
-CORS look like simple thing to develop. Just add a few HTTP headers for regular methods. Then you must handle <code>OPTIONS</code>, then you must know all the headers you're sending, figure out how will your application behave if <code>Origin</code> matches and if not. Therefor it is a good idea to use existing library doing so. For golang applications there is <a href="https://github.com/rs/cors">github.com/rs/cors</a>. <code>net/http</code> compatible middleware, which wraps all handlers and apply CORS rules based on configuration. Usage is very simple, one just create instance of <code>cors.Cors</code>, <code>http.ServeMux</code> and register handlers. The question is then - <em>how to test the CORS as a part of <code>testing</code> routine?</em>.
-</p><h2>Handler and HandlerFunc</h2><p>
-HTTP handling is done in simple function with two mandatory arguments.
-<pre>
-func(w http.ResponseWriter, r *http.Request)
-</pre>
-where <code>http.ResponseWritter</code> is code providing methods writing HTTP reply and <code>http.Request</code> provides data from HTTP request. Functions are represented as <em>interface</em> <code>http.Handler</code>. It has only one method
-<pre>
-type Handler interface {
-        ServeHTTP(ResponseWriter, *Request)
-}
-</pre>
-<p>
-
-<p>
-Beauty of this system is simplicity and the fact <code>ResponseWritter</code> is <em>interface</em> enables unit testing via <code>httptest.NewRecorder</code>.
-<pre>
-req := httptest.NewRequest("GET", "http://example.com/foo", nil)
-w := httptest.NewRecorder()
-handler(w, req)
-</pre>
-</p><h2>Handlers all the way down</h2><script src="https://gist.github.com/vyskocilm/9f6ea49623470e4c98052ed62f4e6845.js"></script><p>
-The main trick is here
-<pre>
-func Middleware(h http.Handler) http.Handler
-</pre>
-<code>http.ServeMux</code> is new type we have not talked before. It registers more handling functions and dispatch them based on request URL. And because it implements <code>http.Handler</code> interface, it is easy to join it with <code>Middleware</code> function and make them working together. The integration is simply done by calling <code>ServeHTTP</code> method. This is <em>exactly</em> how  <code>cors.Cors</code> is integrated to your application, by the way.
-</p><h2>CORS and testing</h2>
-<p>
-As we have discussed before, golang supports HTTP handlers testing via <code>httptest.NewRecorder</code>. This implements <code>http.ResponseWritter</code> interface, so it is easy to run handler function. The main trick is to get CORS enabled <code>http.Handler</code> in the test and call it. 
-</p>
-
-<pre>
-// main.go
-cors = cors.Default()                  // initialize global variable cors.Cors
-mux = http.NewServeMux() // initialize new serve mux
-
-// main_test.go
-r := http.NewRequest(....)
-w := httptest.NewRecorder()
-handler := cors.Handler(mux) // THE TRICK!
-handler.ServeHTTP(w, r)
-</pre>
-
-<h2>An example</h2><p>
-Here is the full working example integrating CORS to simple http server. <code>ServeMux</code> and <code>cors.Cors</code> are now wrapped in <code>Srv</code> structure, so we can access the right handler in the test.
-</p><p>
-First, the proof, that CORS works well
-</p><pre>
-$ curl -v -H Origin:http://example.com http://localhost:8000
-*   Trying ::1...
-* TCP_NODELAY set
-* Connected to localhost (::1) port 8000 (#0)
-> GET / HTTP/1.1
-> Host: localhost:8000
-> User-Agent: curl/7.62.0
-> Accept: */*
-> Origin:http://example.com
-> 
-&lt; HTTP/1.1 200 OK
-<strong>&lt; Access-Control-Allow-Origin: *
-&lt; Vary: Origin</strong>
-&lt; Date: Tue, 18 Dec 2018 14:16:56 GMT
-&lt; Content-Length: 25
-&lt; Content-Type: text/html; charset=utf-8
-&lt; 
-&lt;html>Hello world&lt;/html>
-* Connection #0 to host localhost left intact
-</pre><p>
-And the source code + test.
-</p>
-<script src="https://gist.github.com/vyskocilm/3007ce0754d86b7e7b0754383b46b2a1.js"></script>
-
-<p>
-Major takeways
-<ul>
-<li>It is usually better to use battle tested code even for simple looking problem</li>
-<li><code>net/http</code> is simple yet powerful library providing great abstractions to build on top of</li>
-<li>Testing is important and there should be always the way to write testable code</li>
-<li>Working example of unit test for CORS integartion in golang application</li>
-</ul>
-</p>
+Working on a web project spread in more domains brings you to <a href="https://www.html5rocks.com/en/tutorials/cors/">Cross-Origin Resource Sharing</a>. Browsers use it to if it code from one origin can call HTTP methods placed elsewhere....
+  
   </div>
 
   
@@ -191,68 +129,10 @@ Major takeways
     
     on 2018-11-09
   </p>
+  
   <p>
-I recently joined company as a Python developer. However it turns out there is bigger need to evolve their code written in golang (and PHP and Javascript). I am not an expert in go, so it took me a while to figure things out. However I love to learn new things and to solve new puzzles (the real ones, there is nothing more boring to solve artificial ones for me)
-</p>
-<p>
-In this post I am going to present the way how we moved shared gode to new 1.11 compatible modules. If you want to know more about golang in monorepo, differences between github and gitlab and all the funny things I found, please continue.
-</p><h1>Problem: duplicated code</h1><p>
-Move shared code out. Do not repeat yourself. Do not copy code.
-</p><p>Project I am working on is written as a few microservices. There are all the cool and modern stuff above like Dockers, Swarm, distributes, message queue and so. But from developer's point of view the biggest challenge is project structure. As we have joined already existing organization with a monorepo and working CI/CD system around, our proposals to use more smaller repositories were not accepted. There will be so many things needed to rebuild in order to achieve it and no one is going to pay for it.</p><p>Because there was no one experienced in golang, devs took the easiest approach copy the shared code around. However that became too confusing as it's impossible to have a track and manually synchronize shared code. As go 1.11 got new <a href="https://github.com/golang/go/wiki/Modules">module system</a>, lets use it.</p><h1>Problem: Monorepo structure</h1><p>
-I created a small repo mimicking the structure of the one we have.
-<script src="https://gist.github.com/vyskocilm/33eb6220e5a32aad08322ce2fd00ee78.js"></script>
-This works pretty well, all the microservices are places in a root of monorepo, where shared code lives under <code>g/</code> directory. You can build and test shared pieces independently and build and test the service code together with shared code. So far so good ....
-</p><h1>Problem: does not work in gitlab</h1><p>
-Monorepo lives in a private instance of gitlab, so let's move the code, change the naming and it should work. Except it does not. Despite the same structure, it can't find the shared code. Fortunately <code>go build</code> have <code>-v</code> and <code>-x</code> command switches, which helped me to track down the problem. Long story short. It turned out that there is a hidden protocol between code hosting and <code>go build</code>. 
-<pre>
-curl -s https://github.com/vyskocilm/gazpacho?go-get | grep go-import
- &lt;meta name="go-import" content="github.com/vyskocilm/gazpacho git https://github.com/vyskocilm/gazpacho.git">
-</pre>
-
-The <code>meta</code> tag <code>go-import</code> turned out to be very important factor and it was the case where github and gitlab behaves differently. And as a result was <code>go build</code> failed to find shared code. And it turns out that previous incarnation worked somewhat differently than I wanted. I wanted to have shared code, but with independent smaller modules inside. So solution was simple. Add few more <code>go.mod</code> files to split the code even more.
-<script src="https://gist.github.com/vyskocilm/c5ac8baf1a8ff884276a2a39ba3cd2bc.js"></script>
-Now the code works well, except ...
-</p><h1>Problem: change shared code and service code</h1><p>
-Internally new module system calls <code>git</code> and places results under <code>~/go/pkg/mod</code> in somewhat complicated structure. The problem now is
-<ol>
-<li>/me adds new method <code>Reload</code> to <code>g/cfg</code></li>
-<li>/me wants to use it in service code</li>
-<li><code>go build</code> clones not yet committed version from master, so fail to build</li>
-</ol>
-Initially we have issue two merge requests for each change, but not having an ability to use new code or even worse, inability to fix typos in shared code in less than two requests was extremely unfriendly.  Fortunately developers of golang have thought this. It most likely depends on a fact Google has monorepo as well, so they really need it to work as well. Solution for this is <a href="https://github.com/golang/go/wiki/Modules#when-should-i-use-the-replace-directive"><code>replace</code></a> directive. Here you can trick build system to use different repo. Or the better the different filesystem path. It works for <code>main</code> package, so in perfect solves the problem for service code. For shared ones, there is probably no way. 
-<pre>
-# project1-serviceA/go.mod
-replace github.com/vyskocilm/gazpacho/g/cfg => ../g/cfg
-</pre>
-The only one problem is that you can't use new dependencies this way, however this is being worked on and most likely will be fixed for 1.12. So we can end here ...
-</p><h1>Problem: need to pass gitlab credentials each time</h1><p>This is huge problem. Devs are going to hate you. Unfortunately golang itself does not provide such method. However as git itself is nowadays one of the most used tools, especially when it comes to CI and fetching the things there, here is the way. Using <code>insteadOf</code> you can rewrite git configuration to use ssh transport or to pass credentials
-<pre>
-# for devs: Use ssh, Luke!
-# source: https://gist.github.com/dmitshur/6927554
-git config --global url."git@gitlab.example.com:".insteadOf "https://gitlab.example.com"
-
-# For Gitlab CI, pass CI_TOKEN
-# gitlab CI worker can access gitlab git
-# https://gitlab.com/gitlab-org/gitlab-ce/issues/45610
-before_script:
-  - git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.example.com/".insteadOf "https://gitlab.example.com/"
-</pre>
-</p><h1>Problem: there are no more problems</h1><p>
-Major takeways
-<ol>
-<li>I have discussed working monorepo structure compatible with golang modules</li>
-<li>I have talked about ways how to debug issues with <code>go build</code> and told you about <code>?go-get=1</code> protocol</code>
-<li>I presented a way how to push changes to shared and service code in one request</li>
-<li>And last but not least, I covered the way how to use <code>go build</code> against private git repositories</li>
-</ol>
-
-Feel free to clone <a href="https://github.com/vyskocilm/gazpacho">Gazpacho</a> repo and give me feedback on how things are working for you.
-<br/>
-<a href="https://www.reddit.com/r/golang/comments/9viv50/how_i_solved_go_111_modules_private_monorepo_and/">Reddit thread</a>
-<br/>
-<blockquote class="twitter-tweet" data-lang="cs"><p lang="en" dir="ltr">Golang 1.11 modules, monorepo, private gitlab vs github - how this fits together: <a href="https://t.co/OntcaQEGYe">https://t.co/OntcaQEGYe</a> <a href="https://twitter.com/hashtag/golang?src=hash&amp;ref_src=twsrc%5Etfw">#golang</a> <a href="https://twitter.com/hashtag/gitlab?src=hash&amp;ref_src=twsrc%5Etfw">#gitlab</a> <a href="https://twitter.com/hashtag/monorepo?src=hash&amp;ref_src=twsrc%5Etfw">#monorepo</a> <a href="https://twitter.com/hashtag/git?src=hash&amp;ref_src=twsrc%5Etfw">#git</a> <a href="https://twitter.com/hashtag/github?src=hash&amp;ref_src=twsrc%5Etfw">#github</a></p>&mdash; Michal Vyskocil (@vyskocilm) <a href="https://twitter.com/vyskocilm/status/1060818093948239872?ref_src=twsrc%5Etfw">9. listopadu 2018</a></blockquote>
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-</p>
+I recently joined company as a Python developer. However it turns out there is bigger need to evolve their code written in golang (and PHP and Javascript). I am not an expert in go, so it took me a while to figure things out. However I love to...
+  
   </div>
 
   
@@ -268,49 +148,10 @@ Feel free to clone <a href="https://github.com/vyskocilm/gazpacho">Gazpacho</a> 
     
     on 2018-10-10
   </p>
+  
   <h1>Limiting your goroutines</h1><p>
-How to properly implement goroutine pool in golang with input and output channel(s). Text expects knowledge about <a href="https://golang.org/">golang</a> and about <a href="https://tour.golang.org/concurrency/1">Go Concurency</a>. That means I am not going to explain what goroutine, channel or defer actually are.
-</p><h2>Intro</h2>
-<p>
-Gorutines are some kind of lightweight threads managed by userspace golang runtime. They save memory and context switches. Therefor it is possible to spawn literally <a href="https://rcoh.me/posts/why-you-can-have-a-million-go-routines-but-only-1000-java-threads/">Millions!</a> of them.  However as BenPar^W Voltaire said
-<p/>
-
-<p>
-<img src="https://media.licdn.com/media/gcrc/dms/image/C4E12AQFoCyvG3y_XEA/article-cover_image-shrink_600_2000/0?e=1544659200&v=beta&t=nNlZk3EjA5HecFvdl52P0qsWxmeuBbLq81ESKDa04ms" alt="With great power comes great responsibility" />
-<br/>
-<a href="https://www.linkedin.com/pulse/quote-great-power-comes-responsibility-voltaire-mba-bsee/">Source: linkedin</a>
-</p>
-
-<p>
-It is not always practical to spawn your task million times. For example when you need to crawl web pages. It's good idea to NOT do it millions of times at the same time. On the other hand this is EXACTLY the kind of task golang and its goroutines shines at. The way of solving it is called <strong>pool</strong>, or workers, task queue, whatever you want. The idea is the same, we have a huge number N of tasks, which will be distributed to smaller number P of goroutines. Each goroutine will read next input from the channel, do the work and return result on a channel. This way we can parameterize the number of concurrent tasks we run. We can measure speed of execution using different numbers.  Or we can ensure our code can deal with huge input without crashing the world :-)
-</p>
-
-<h2>Deadlocks everywhere</h2><p>The situation looks simple. Golang is an advanced language with builtin support for goroutines and concurrency. One just need to search the internet a bit to find an example. Knowing very little about golang, I naturally came to <a href="https://stackoverflow.com/questions/29342701/write-to-same-channel-with-multiple-goroutines">StackOverflow</a> to get the examples of READing data from the go channel. And the <a href="https://play.golang.org/p/ESq9he_WzS">code</a> looked simple and printed all numbers. That means we can <strong>distribute</strong> data from one channel and <strong>consume</strong> them from go routines. And golang runtime will make the magic behind to make this happen.</p><p>
-So let's add writing to the an another output channel. We will read it from main thread and everything should work! Something like <a href="https://gobyexample.com/worker-pools">Worker pools @gobyexample.com</a>.
-</p><p>
-And BAM! Code deadlock!
-</p><p>
-<img src="http://nikolar.com/wp-content/uploads/2013/09/trafficDeadlock.jpg" alt="deadlock"/>
-<br/>
-<a href="http://nikolar.com/tag/deadlock/">Source: nikolar.com</a>
-
-<p>
-Program crashed and never print anything. Panic mode started. To make the long story short. Here is the key
-</p><blockquote>
-You MUST read from channel you're writing into, or BAD things will happen.
-</blockquote><p>
-My code was structured this way
-<ol>
-<li>After some init, create P goroutines and execute them</li>
-<li>Write data to input channel</li>
-<li>Read results from output channel</li>
-</ol>
-
-But program stopped in part 2, so reading of the data never happened, which blocked the send part inside goroutines, ... there is no better word than <strong>deadlock</strong> to describe the situation.
-</p><p><h2>The solution</h2></p>
-<p>
- Fortunately golang provides a simple way to fix it. <em>Offload the second part to goroutine</em>. We can read from output channel immediately from main thread. Full code available on <a href="https://play.golang.org/p/hTHhgZy-KvV">https://play.golang.org</a> or below
-</p><script src="https://gist.github.com/vyskocilm/d0c1a2f57a9b0821c00f31190c167781.js"></script>
+How to properly implement goroutine pool in golang with input and output channel(s). Text expects knowledge about <a href="https://golang.org/">golang</a> and about <a...
+  
   </div>
 
   
@@ -326,50 +167,9 @@ But program stopped in part 2, so reading of the data never happened, which bloc
     
     on 2018-04-04
   </p>
-  <h2>My Javascript experience</h2><p>When I started my career, I was working as Junior Developer on web based application. We have had parts written in <a href="https://en.wikipedia.org/wiki/JavaServer_Pages">Java Server Pages</a>, which was great technology combining elegance of PHP with easy to use of Java. We had something in <a href="https://en.wikipedia.org/wiki/Java_servlet">Java servlets</a>, which allows us easier testing and compilation up front. Other parts were in <a href="
-https://en.wikipedia.org/wiki/PL/SQL">PL/SQL</a>. And of course, the Javascript.</p>
-<p>And most of our clients has been using <a href="https://davidwalsh.name/6-reasons-why-ie6-must-die">Internet Explorer 6</a> at the time! XmlHttpRequest was a neat new thing, jQuery was a hot new technology. The common way to have JS integrated was through session objects, so the logic of application was scattered through several pages (JSPs or Servlets) and it relied on server side rendering heavily.</p>
-<p>At that time I decided to <strong>never</strong> touch Javascript at all.</p>
-<h2>Fast forward to 2018</h2><p>The world has changed. Browsers are more and more ubiquitous, we got more platforms (TVs, consoles and phones). So if you want to spread your small application to your friends, then web application is the easiest way to do. Fortunately Javascript become more powerful and compatible across browsers. The main shift of paradigm is client side rendering. There is no need to do horrible things like passing session objects and initialize all you JS again and again. You can manage all your state in one place.</p>
-<p>And that's not all. With advent of technologies like <a href="http://webassembly.org/">Webassembly</a> and <a href="https://github.com/kripken/emscripten">Emscripten</a> you can have crazy things like <a href="https://github.com/kripken/sql.js">native sqlite</a> database running in your browser. Plus you can offload heavy CPU intensive tasks (like SQL queries) to <a href="https://en.wikipedia.org/wiki/Web_worker">Web worker</a>.</p>
-<h2>"Modern" JS development for dummies</h2><p>Of course things are not <em>that</em> easy for dummies. You have <a href="https://nodejs.org/en/">nodejs</a>, <a href="https://www.npmjs.com/">npm</a> package manager (or shall I use <a href="https://yarnpkg.com/en/">yarn</a>?). Should I learn AngularJS, ReactJs, Redux, Webpack, Gulp, Vue.js, Grunt? You can easily fall into the trap of choosing the right tools, frameworks and workflows, spending hours on watching youtube videos and reading documentation, while not implementing a single line.</p>
-<p>The thing is - it <strong>does not matter</strong>. Keep it simple, implement first version using technologies you know or you can learn easily and finish it as soon as possible. Then you will encounter problems like deployment, which you can solve using existing technologies. So start with stupid solutions and enhance it over times.</p>
-<h2>jQuery</h2><p>First thing - use and learn jQuery. The DOM API (especially old parts like <code>getElementById</code>) is horrible and jQuery have nicer and easier to use API. Plus all you need to use jQuery is to add <code>scr="https://code.jquery.com/jquery-3.3.1.slim.js"</code> to your HTML and it works. You can get nicer looking code with a minimal effort</p>
-<pre>
-// DOM API
-var element = document.getElementById("id");
-// jQuery
-var element = $("#id");
-</pre><p>Sadly there are things jQuery is not compatible with modern API like needed for <code>sql.js</code> like <code>arraybuffer</code> type for <code>XmlHttpRequest</code>. Fortunately you can combine it with native browser APIs  (unlike <a href="https://reactjs.org/docs/integrating-with-other-libraries.html">ReactJS</a> which builds own Virtual DOM). Which is important in case you're junior and exploring the world.</p>
-<h2>Avoid nested code</h2><p>For a simple application you'll be building, try to avoid having nested code. If you define function inside function inside callback definition, you're doing something wrong. This is problematic given the fact Javascript is event based and you register callback all around.</p>
-<p>The problem I have had was</p>
-<p><ol></p>
-<li>You need to use <code>XmlHttpRequest</code> to download your database file</li>
-<li>THEN you can instantiate database and send first request to worker</li>
-<li>THEN is your application ready</li><p>And while this is trivial to write in traditional environment, <code>XmlHttpRequest</code> is asynchronous, so all you know if that you're ready when <em>callback</em> is called.</p>
-<pre>
-var worker = new Worker ("worker.sql.js");
-...
-var xhr = new XmlHttpRequest ();
-
-...
-xhr.onload = function (event) {
-    ...
-    worker.postMessage({
-        id:id,
-        action:'open',
-        buffer: uInt8Array,
-    });
-    // enable execute button, so you can post SQL queries to worker
-    $("#execute").removeAttr ("disabled");
-}
-</pre><p>The most important method is enabling the button after sqlite file is downloaded and first job to worker is sent. For non interactive application, you''ll simply fire some event or call the callback.</p>
-<h2>console.log and browser's REPL</h2><p>Can't emphasize how great tool is <code>console.log</code>. It does not work like Python or similar REPL printing strings.  Browser will deal with logged things like with objects, so all the structure become visible to you immediately. This is very powerful tool, especially for novices in the field.</p>
-<p>This becomes extremely important when you're dealing with a relatively simple tasks, like how to iterate through <code>Object</code> or <code>Map</code> in the language.</p>
-<h2>Kinkip: The result</h2><p>The world of web applications and Javascript programming is way more powerful and developer friendly. I particularly love the move to client side rendering and with WebWorkers, XmlHttpRequest or emscripten and WebAssembly, you have barely no limits in what you can achieve.</p>
-<p>The result is <a href="/kinkip/index.html">Kinkip</a>, helper tool for <a href="https://play.google.com/store/apps/details?id=com.apnax.wordsnack.csk&hl=en">Piknik slov - Word Snack</a> game, which allows you to search for a words you can get from given range of characters. It is powered by <a href="https://github.com/kripken/sql.js">sql.js</a> and GNU FDL Czech - English dictionary from <a href="https://www.svobodneslovniky.cz/">svobodneslovniky.cz</a>. The beauty of it is that all operations are done client side. If properly cached, it works completely offline.</p>
-<p>The downside is the game is no longer fun to play :-)</p>
-
+  
+  <h2>My Javascript experience</h2><p>When I started my career, I was working as Junior Developer on web based application. We have had parts written in <a href="https://en.wikipedia.org/wiki/JavaServer_Pages">Java Server Pages</a>, which was great...
+  
   </div>
 
   
@@ -385,73 +185,9 @@ xhr.onload = function (event) {
     
     on 2018-01-23
   </p>
-  <h2>About</h2><p><a href="https://www.python.org/dev/peps/pep-0318/">Python decoratos</a> is very powerful tool for Python developers. Most of the time I am on user side, however sometimes I need to write my own one. This post is my simple braindump on how to write it.</p><h2>Decorator without arguments</h2><pre>
-# to update wrapper function to looks like wrapped one, fixes stack traces, function name, and so
-from functools import wraps
-
-# name of decorator, to be used as @prnt
-def prnt (f):
-    # make wrapper looking like wrapped function f
-    @wraps (f)
-    def wrapper (*args, **kwargs):
-        # custom action called prior function call
-        print ("calling %s" % f.__name__)
-        # call function and return result
-        return f (*args, **kwargs)
-    # return wrapper function
-    return wrapper
-</pre><p>
-So usage is simple
-</p><pre>
-@prnt
-def func (i):
-    return i
-
-# usage
->>> func (42)
-calling func
-42
->>>
-</pre><h2>Decorator with arguments</h2><p>
-You can parametrize decorator itself. Typical example would be Flask's <code>app.route ("/url")</code> used to register route with function handler. Technically you're simply adding an another scope.
-</p><pre>
-from __future__ import print_function
-import sys
-# to update wrapper function to looks like wrapped one, fixes stack traces, function name, and so
-from functools import wraps
-
-# name of decorator, to be used as @prnt
-def prnt (out):
-    # this part will run during paring of function declaration
-    print ("out=%s" % out)
-    def wrapper_f (f):
-        # this runs after function is really called
-        # make wrapper looking like wrapped function f
-        @wraps (f)
-        def wrapper (*args, **kwargs):
-            # custom action called prior function call
-            print ("calling %s" % f.__name__, file=out)
-            # call function and return result
-            return f (*args, **kwargs)
-        # return wrapper function
-        return wrapper
-    return wrapper_f
-</pre><p>
-So usage is simple
-</p><pre>
-@prnt (sys.stderr)
-def func (i):
-    return i
-
-out=&lt;open file '&lt;stderr>', mode 'w' at 0x7f18b24571e0>
-
->>> func (1)
-calling func
-1
->>> 
-</pre><p>
-You can see that <code>prnt</code> with parameters is called during function declaration. Where code after <code>wrapper_f</code> is called only when function is called.
-</p>
+  
+  <h2>About</h2><p><a href="https://www.python.org/dev/peps/pep-0318/">Python decoratos</a> is very powerful tool for Python developers. Most of the time I am on user side, however sometimes I need to write my own one. This post is my simple braindump...
+  
   </div>
 
   
@@ -467,25 +203,10 @@ You can see that <code>prnt</code> with parameters is called during function dec
     
     on 2018-01-21
   </p>
+  
   <h2>About</h2><p>
-I am the long term user of Linux based operating systems.  And as a C developer mostly working on stuff built by GNU autotools. Therefor I need to quickly build, install and test new versions of the software. I usually make changes to lower layers (like <a href="https://github.com/zeromq/czmq/pull/1833">zeromq/czmq</a>).
-</p><p>
-Typical advice for Linux is  to <strong>not</strong> run things as a root!
-</p><h3>What is root</h3><blockquote>
-Linux operating systems are multi user ones. Each user account have own documents and
-can't interfere with others. Except
-root. Root is a super user. It takes it all. Permission checks are not applied
-to this user. Never!
-</blockquote><h2>The solution</h2><p>The standard installation target for autotools based <code>make install</code> is <code>/usr/local</code>. This is path can be written by root. There are many ways to do to avoid this problem. You can install using <code>sudo</code> helper. You can configure <code>--prefix</code> and related variables like <code>PATH</code>, <code>PKG_CONFIG_PATH</code>, <code>LD_LIBRARY_PATH</code> and so.</p><p>
-Or there is way more simpler thing to do
-<pre>
-$ sudo chown $myuser: /usr/local
-</pre>
-</p><p>
-This is a tip from <a href="http://hintjens.com">Pieter Hintjens's</a> book <a
-href="https://hintjens.gitbooks.io/scalable-c/content/chapter1.html">Scalable
-C</a>. I actually used all three ways, however cannot be more happy with user writable <code>/usr/local</code>.
-</p>
+I am the long term user of Linux based operating systems.  And as a C developer mostly working on stuff built by GNU autotools. Therefor I need to quickly build, install and test new versions of the software. I usually make changes...
+  
   </div>
 
   

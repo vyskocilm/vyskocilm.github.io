@@ -90,6 +90,7 @@
     
     on 2018-10-10
   </p>
+  
   <h1>Limiting your goroutines</h1><p>
 How to properly implement goroutine pool in golang with input and output channel(s). Text expects knowledge about <a href="https://golang.org/">golang</a> and about <a href="https://tour.golang.org/concurrency/1">Go Concurency</a>. That means I am not going to explain what goroutine, channel or defer actually are.
 </p><h2>Intro</h2>
@@ -133,6 +134,7 @@ But program stopped in part 2, so reading of the data never happened, which bloc
 <p>
  Fortunately golang provides a simple way to fix it. <em>Offload the second part to goroutine</em>. We can read from output channel immediately from main thread. Full code available on <a href="https://play.golang.org/p/hTHhgZy-KvV">https://play.golang.org</a> or below
 </p><script src="https://gist.github.com/vyskocilm/d0c1a2f57a9b0821c00f31190c167781.js"></script>
+  
   </div>
 
 

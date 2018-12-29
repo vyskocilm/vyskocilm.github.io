@@ -21,7 +21,7 @@
         <!-- Custom styles for this template -->
         <link href="../../static/clean-blog.min.css" rel="stylesheet">
 
-        <title>Python decorators for dummies — miblog</title>
+        <title>Adblocking in Turris Omnia — miblog</title>
     </head>
 
     <body>
@@ -81,82 +81,46 @@
   
   <div class="blog-post">
   
-    <h2>Python decorators for dummies</h2>
+    <h2>Adblocking in Turris Omnia</h2>
   
   <p class="meta">
     written by
     
-      <a href="https://twitter.com/@vyskocilm">Michal Vyskocil</a>
+      <a href="https://twitter.com/vyskocilm">Michal Vyskocil</a>
     
-    on 2018-01-23
+    on 2018-12-29
   </p>
   
-  <h2>About</h2><p><a href="https://www.python.org/dev/peps/pep-0318/">Python decoratos</a> is very powerful tool for Python developers. Most of the time I am on user side, however sometimes I need to write my own one. This post is my simple braindump on how to write it.</p><h2>Decorator without arguments</h2><pre>
-# to update wrapper function to looks like wrapped one, fixes stack traces, function name, and so
-from functools import wraps
+  <p>
+As a long time Firefox user I was horrified to use web browser with very limited blocking capabilities. However Samsung Browser is very handy tool for some sites. However the number of spam, scam, or porn pages and advertisements makes browsing there <strong>very</strong> unpleasant experience. Especially if your kids want to browse that way.
+</p><p>
+However I bought <a href="https://omnia.turris.cz">Turris Omnia</a> especially because I wanted to hack around.<br/>
+<img src="https://omnia.turris.cz/static/img/banner-image.183819b04f00.jpg" alt="Turris Omnia Black"/><br/>
+Source: <a href="https://turris.cz">turris.cz</a>
+</p><h1>Options</h1><p>
+As router provides Doman Name Service for all devices in local network, the most common way is to <strong>block</strong> DNS lookups for specified domains. It turns out there are three options available for Turris (or OpenWrt, the base operating system of Turris).
 
-# name of decorator, to be used as @prnt
-def prnt (f):
-    # make wrapper looking like wrapped function f
-    @wraps (f)
-    def wrapper (*args, **kwargs):
-        # custom action called prior function call
-        print ("calling %s" % f.__name__)
-        # call function and return result
-        return f (*args, **kwargs)
-    # return wrapper function
-    return wrapper
-</pre><p>
-So usage is simple
-</p><pre>
-@prnt
-def func (i):
-    return i
-
-# usage
->>> func (42)
-calling func
-42
->>>
-</pre><h2>Decorator with arguments</h2><p>
-You can parametrize decorator itself. Typical example would be Flask's <code>app.route ("/url")</code> used to register route with function handler. Technically you're simply adding an another scope.
-</p><pre>
-from __future__ import print_function
-import sys
-# to update wrapper function to looks like wrapped one, fixes stack traces, function name, and so
-from functools import wraps
-
-# name of decorator, to be used as @prnt
-def prnt (out):
-    # this part will run during paring of function declaration
-    print ("out=%s" % out)
-    def wrapper_f (f):
-        # this runs after function is really called
-        # make wrapper looking like wrapped function f
-        @wraps (f)
-        def wrapper (*args, **kwargs):
-            # custom action called prior function call
-            print ("calling %s" % f.__name__, file=out)
-            # call function and return result
-            return f (*args, **kwargs)
-        # return wrapper function
-        return wrapper
-    return wrapper_f
-</pre><p>
-So usage is simple
-</p><pre>
-@prnt (sys.stderr)
-def func (i):
-    return i
-
-out=&lt;open file '&lt;stderr>', mode 'w' at 0x7f18b24571e0>
-
->>> func (1)
-calling func
-1
->>> 
-</pre><p>
-You can see that <code>prnt</code> with parameters is called during function declaration. Where code after <code>wrapper_f</code> is called only when function is called.
+<ol>
+<li><a href="https://pi-hole.net/">Pi Hole</a> (<a href="https://doc.turris.cz/doc/cs/public/pihole">Turris doc</a>)</li>
+<li><a href="https://github.com/openwrt/packages/blob/master/net/adblock/files/README.md">OpenWrt Adblock</a> (<a href="https://doc.turris.cz/doc/en/public/adblock">Turris doc</a>)</li>
+<li><a href="https://github.com/openwrt/packages/blob/master/net/simple-adblock/files/README.md">OpenWrt Simple Adblock</a> (Turris doc not available)</li>
+</ol>
+</p><p>
+As user of Turris I can skip <code>simple-adblock</code> simply because it is not available there by default and it works with <em>dnsmasq</em> only. So there are two options only. And to be honest, simply reading the documentation it became clear that
+ <dl>
+  <dt>Pi Hole</dt>
+  <dd>Is a complex solution with providing more than simple adblocking, including graphs, statistics and so. It must run in own LXC container and DHCP must be properly configured to be served by LXC container.</dd>
+  <dt>Adblock</dt>
+  <dd>Just install two packages <code>adblock</code> and <code>luci-app-adblock</code> and that's it. Adblock integrates with <code>kresd</code> (Knot DNS Resolver) natively, so there is very little to do.</dd>
+</dl> 
+In fact, <code>adblock</code> simply convert all the sources to <code>/etc/kresd/adb_list.overall</code>, which is <code>DENY</code> policy file for Knot resolver. For network tools blocked domains appears as not existing. 
+</p><p><h2>Not everything is blocked</h2></p>
+<p>
+In theory community maintained lists shall be enough, but the disadvantage of adblock is that you never know if new source will block site you want to or not. I did not find better way than downloading all the lists from <a href="https://github.com/openwrt/packages/blob/master/net/adblock/files/adblock.conf">adblock.conf</a> and grepping the results. Fortunately <code>adblock</code> comes with local blacklist, so admin can block additional domains by editing <code>/etc/adblock/adblock.blacklist</code>.
+</p><p>
+So surprisingly, thanks OpenWrt community, is adblocking on router almost easy as installing extension for the browser.
+</p><p>
+<img src="screenshot_2018-12-29-turris-overview-luci.png"/>
 </p>
   
   </div>

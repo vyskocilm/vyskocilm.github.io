@@ -24,7 +24,7 @@
         <!-- Pygments - code highlighting styles -->
         <link rel="stylesheet" href="../../static/pygments.css">
 
-        <title>Golang, CORS and testing — miblog</title>
+        <title>Speeding your CI with go mod download ... again — miblog</title>
     </head>
 
     <body>
@@ -84,101 +84,59 @@
   
   <div class="blog-post">
   
-    <h2>Golang, CORS and testing</h2>
+    <h2>Speeding your CI with go mod download ... again</h2>
   
   <p class="meta">
     written by
     
-      <a href="https://twitter.com/@vyskocilm">Michal Vyskocil</a>
+      <a href="https://twitter.com/vyskocilm">Michal Vyskocil</a>
     
-    on 2018-12-18
+    on 2019-02-13
   </p>
   
-  <h1></h1><p>
-Working on a web project spread in more domains brings you to <a href="https://www.html5rocks.com/en/tutorials/cors/">Cross-Origin Resource Sharing</a>. Browsers use it to if it code from one origin can call HTTP methods placed elsewhere. Responses must contain specific headers, like <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin">Access-Control-Allow-Origin</a>, which must match requesting <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin">Origin</a> of the site issuing the call. More information about CORS can be found at <a href="https://www.html5rocks.com/en/tutorials/cors/">html5rocks</a>.
-</p><p>
-CORS look like simple thing to develop. Just add a few HTTP headers for regular methods. Then you must handle <code>OPTIONS</code>, then you must know all the headers you're sending, figure out how will your application behave if <code>Origin</code> matches and if not. Therefor it is a good idea to use existing library doing so. For golang applications there is <a href="https://github.com/rs/cors">github.com/rs/cors</a>. <code>net/http</code> compatible middleware, which wraps all handlers and apply CORS rules based on configuration. Usage is very simple, one just create instance of <code>cors.Cors</code>, <code>http.ServeMux</code> and register handlers. The question is then - <em>how to test the CORS as a part of <code>testing</code> routine?</em>.
-</p><h2>Handler and HandlerFunc</h2><p>
-HTTP handling is done in simple function with two mandatory arguments.
-<pre>
-func(w http.ResponseWriter, r *http.Request)
-</pre>
-where <code>http.ResponseWritter</code> is code providing methods writing HTTP reply and <code>http.Request</code> provides data from HTTP request. Functions are represented as <em>interface</em> <code>http.Handler</code>. It has only one method
-<pre>
-type Handler interface {
-        ServeHTTP(ResponseWriter, *Request)
-}
-</pre>
-<p>
+  <p>Running <code>go mod download</code> slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image. As I wrote recently, we do use <a href="https://vyskocilm.github.io/blog/go-111-modules-monorepo-and-shared-code">monorepo with many go modules</a>. So here is the short howto article how to squash all your go.mod files to one to simplify container build. And speedup your CI of course.</p>
+<h2>The problem</h2>
+<p>The problem was that <code>go.mod</code> files are scattered around git repo and <code>go mod download</code> expects exactly one file to be used. There were two things comes into my mind</p>
+<ol>
+<li>regenerate directory structure as a part of Docker file and copy <code>go.mod</code> and <code>go.sum</code> files there and call <code>go mod download</code> for each of those</li>
+<li>or to squash all the files together to see what will happen</li>
+</ol>
+<p>Number one does not look like <em>sexy</em> approach and it will complicate the Dockerfile a lot. So the second one looked like better approach.</p>
+<h2>Squashing</h2>
+<p>Fortunately <code>go.mod</code> have script friendly structure, so could be easy to call a few unix tools to do the work. See an example from <a href="https://github.com/vyskocilm/gazpacho/blob/master/project1-serviceA/go.mod">example repository gazpacho</a></p>
+<pre><code>module github.com/vyskocilm/gazpacho/project1-serviceA
 
-<p>
-Beauty of this system is simplicity and the fact <code>ResponseWritter</code> is <em>interface</em> enables unit testing via <code>httptest.NewRecorder</code>.
-<pre>
-req := httptest.NewRequest("GET", "http://example.com/foo", nil)
-w := httptest.NewRecorder()
-handler(w, req)
-</pre>
-</p><h2>Handlers all the way down</h2><script src="https://gist.github.com/vyskocilm/9f6ea49623470e4c98052ed62f4e6845.js"></script><p>
-The main trick is here
-<pre>
-func Middleware(h http.Handler) http.Handler
-</pre>
-<code>http.ServeMux</code> is new type we have not talked before. It registers more handling functions and dispatch them based on request URL. And because it implements <code>http.Handler</code> interface, it is easy to join it with <code>Middleware</code> function and make them working together. The integration is simply done by calling <code>ServeHTTP</code> method. This is <em>exactly</em> how  <code>cors.Cors</code> is integrated to your application, by the way.
-</p><h2>CORS and testing</h2>
-<p>
-As we have discussed before, golang supports HTTP handlers testing via <code>httptest.NewRecorder</code>. This implements <code>http.ResponseWritter</code> interface, so it is easy to run handler function. The main trick is to get CORS enabled <code>http.Handler</code> in the test and call it. 
-</p>
+require (
+    github.com/vyskocilm/gazpacho/g/cfg v0.0.0-20181109075706-a4ae50527451
+    gopkg.in/yaml.v2 v2.2.1 // indirect
+)
 
-<pre>
-// main.go
-cors = cors.Default()                  // initialize global variable cors.Cors
-mux = http.NewServeMux() // initialize new serve mux
+replace github.com/vyskocilm/gazpacho/g/cfg =&gt; ../g/cfg
+</code></pre>
+<p>What we are interested in is the part between <code>require (</code> and <code>)</code> and it turned out that <code>sed</code> is a perfect tool for.</p>
+<div class="hll"><pre><span></span>sed -n -e <span class="s1">&#39;/^require (/,/^)$/p&#39;</span> go.mod <span class="p">|</span> sed <span class="s1">&#39;1d;/^)$d&#39;</span>
+        github.com/vyskocilm/gazpacho/g/cfg v0.0.0-20181109075706-a4ae50527451
+        gopkg.in/yaml.v2 v2.2.1 // indirect
+</pre></div>
+<p>First we print everything between <code>require (</code> and <code>)</code>, see <code>p</code>rint command in first <code>sed</code> invocation. Then we strip the first line (<code>1d</code>) and line with <code>)</code>.</p>
+<p>Then we can  combine everything to such awesome shell magic.</p>
+<div class="hll"><pre><span></span>find <span class="k">$(</span>git rev-parse --show-toplevel<span class="k">)</span> -mindepth <span class="m">2</span> -name <span class="s1">&#39;go.mod&#39;</span> <span class="p">|</span> <span class="k">while</span> <span class="nb">read</span> GOMOD
+<span class="k">do</span>
+    sed -n -e <span class="s1">&#39;/^require (/,/^)$/p&#39;</span> <span class="s2">&quot;</span><span class="si">${</span><span class="nv">GOMOD</span><span class="si">}</span><span class="s2">&quot;</span> <span class="p">|</span> sed <span class="s1">&#39;1d;/^)$/d&#39;</span>
+<span class="k">done</span> <span class="p">|</span> sort -u <span class="p">|</span> grep -v <span class="s1">&#39;internal.git.repo&#39;</span> &gt;&gt; go.mod
+</pre></div>
+<p>Which will</p>
+<ol>
+<li>find all <code>go.mod</code> files from your monorepo (ignoring the top level one, this is <code>-mindepth 2</code> is about)</li>
+<li>for <strong>each</strong> of those it will print the lines with dependencies</li>
+<li>then all the lines will be sorted, all duplicates removed</li>
+<li>additionally all dependencies points to internal repo were removed.-As <a href="https://vyskocilm.github.io/blog/go-111-modules-monorepo-and-shared-code">monorepo with many go modules</a> article discuss, we do use <code>replace</code> directive. We do not care tah much about downloading internal dependencies. They are in as a part of git checkout anyway. Additionally one would need to pass <code>gitlab</code> credentials into Docker build somehow. Better to not do it.</li>
+</ol>
+<h2>What about go.sum</h2>
+<div class="hll"><pre><span></span>find <span class="k">$(</span>git rev-parse --show-toplevel<span class="k">)</span> -mindepth <span class="m">2</span> -name <span class="s1">&#39;go.sum&#39;</span> <span class="p">|</span> xargs sort -u <span class="p">|</span> grep -v <span class="s1">&#39;internal.git.repo&#39;</span> &gt; go.sum
+</pre></div>
+<p>There is nothing to show, format is line oriented, so friendly to unix tools without any hacking</p>
 
-// main_test.go
-r := http.NewRequest(....)
-w := httptest.NewRecorder()
-handler := cors.Handler(mux) // THE TRICK!
-handler.ServeHTTP(w, r)
-</pre>
-
-<h2>An example</h2><p>
-Here is the full working example integrating CORS to simple http server. <code>ServeMux</code> and <code>cors.Cors</code> are now wrapped in <code>Srv</code> structure, so we can access the right handler in the test.
-</p><p>
-First, the proof, that CORS works well
-</p><pre>
-$ curl -v -H Origin:http://example.com http://localhost:8000
-*   Trying ::1...
-* TCP_NODELAY set
-* Connected to localhost (::1) port 8000 (#0)
-> GET / HTTP/1.1
-> Host: localhost:8000
-> User-Agent: curl/7.62.0
-> Accept: */*
-> Origin:http://example.com
-> 
-&lt; HTTP/1.1 200 OK
-<strong>&lt; Access-Control-Allow-Origin: *
-&lt; Vary: Origin</strong>
-&lt; Date: Tue, 18 Dec 2018 14:16:56 GMT
-&lt; Content-Length: 25
-&lt; Content-Type: text/html; charset=utf-8
-&lt; 
-&lt;html>Hello world&lt;/html>
-* Connection #0 to host localhost left intact
-</pre><p>
-And the source code + test.
-</p>
-<script src="https://gist.github.com/vyskocilm/3007ce0754d86b7e7b0754383b46b2a1.js"></script>
-
-<p>
-Major takeways
-<ul>
-<li>It is usually better to use battle tested code even for simple looking problem</li>
-<li><code>net/http</code> is simple yet powerful library providing great abstractions to build on top of</li>
-<li>Testing is important and there should be always the way to write testable code</li>
-<li>Working example of unit test for CORS integartion in golang application</li>
-</ul>
-</p>
   
   </div>
 

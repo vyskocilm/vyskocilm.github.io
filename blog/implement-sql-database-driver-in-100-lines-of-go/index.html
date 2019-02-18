@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!--
+        <link rel="stylesheet" href="../../static/style.css">
+        -->
+        <!-- Bootstrap core CSS -->
+        <link href="../../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+        <!-- Custom fonts for this template -->
+        <link href="../../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href='https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+
+        <!-- Custom styles for this template -->
+        <link href="../../static/clean-blog.min.css" rel="stylesheet">
+
+        <!-- Pygments - code highlighting styles -->
+        <link rel="stylesheet" href="../../static/pygments.css">
+
+        <title>Implement SQL database (driver) in 100 lines of Go — miblog</title>
+    </head>
+
+    <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">MIBLOG</a>
+            <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                Menu
+                <i class="fa fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../">Home</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../blog/">Blog</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../projects/">Projects</a></li>
+                    
+                    <li class="nav-item" endif
+                        %}><a class="nav-link" href="../../about/">About</a></li>
+                    
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- page header -->
+    <header class="masthead" style="background-image: url('../../static/Lake_Hayes_by_queenstown.jpg')">
+      <div class="overlay"></div>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-md-10 mx-auto">
+            <div class="site-heading">
+              <h1>Miblog</h1>
+              <!--
+              <span class="subheading">Thoughts and ideas</span>
+              -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TODO: copy boostrap style -->
+    <!-- Main Content -->
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+        
+  
+  <div class="blog-post">
+  
+    <h2>Implement SQL database (driver) in 100 lines of Go</h2>
+  
+  <p class="meta">
+    written by
+    
+      <a href="https://twitter.com/vyskocilm">Michal Vyskocil</a>
+    
+    on 2019-02-18
+  </p>
+  
+  <p>Go <a href="https://golang.org/pkg/database/sql/">database/sql</a> defines interfaces
+for SQL databases. Actual driver must be implemented in own package. And
+dependency injection is done as a part of import and build system. Lets go
+deeper to see how it is actually implemented.</p>
+<p>This exercise will result in a simple driver backed up by csv files. Who do
+not want to <code>SELECT</code> from csv file?</p>
+<p>Disclaimer: I wrote it in order to learn <code>database/sql</code> and to learn more about
+design of APIs for go. I regularly use deprecated methods, which have advanced
+variants in recent standard library. Consult documentation if you want to know
+more.</p>
+<p>I have had three goals in mind</p>
+<ol>
+<li>Learning</li>
+<li>Simplicity</li>
+<li>100 lines of code</li>
+</ol>
+<h2><code>database/sql</code> intro</h2>
+<p>Here is small snippet of Go program using Postgres
+<a href="../../blog/implement-sql-database-driver-in-100-lines-of-go/lib/pq">https://github.com/lib/pq/</a> driver to talk to database. It use generic
+methods of <code>database/sql</code> interfaces, so switching the driver and fixing SQL
+dialects, we can talk to <em>any</em> database system without a need to change much
+of the code.</p>
+<div class="hll"><pre><span></span><span class="kn">import</span> <span class="p">(</span>
+    <span class="s">&quot;database/sql&quot;</span>
+    <span class="nx">_</span> <span class="s">&quot;github.com/lib/pq&quot;</span>
+<span class="p">)</span>
+
+<span class="o">...</span>
+    <span class="nx">db</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">sql</span><span class="p">.</span><span class="nx">Open</span><span class="p">(</span><span class="s">&quot;postgres&quot;</span><span class="p">,</span> <span class="nx">dbURI</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">defer</span> <span class="nx">db</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+    <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">db</span><span class="p">.</span><span class="nx">Exec</span><span class="p">(</span><span class="s">&quot;CREATE TABLE IF NOT EXISTS TBL2(id BIGSERIAL)&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+    <span class="p">}</span>
+</pre></div>
+<h2>Magic inside</h2>
+<p>There is a magic inside</p>
+<div class="hll"><pre><span></span><span class="kn">import</span> <span class="p">(</span>
+    <span class="s">&quot;fmt&quot;</span>
+    <span class="s">&quot;database/sql&quot;</span>
+    <span class="nx">_</span> <span class="s">&quot;github.com/lib/pq&quot;</span>
+    <span class="nx">_</span> <span class="s">&quot;github.com/go-sql-driver/mysql&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Drivers=%#v\n&quot;</span><span class="p">,</span> <span class="nx">sql</span><span class="p">.</span><span class="nx">Drivers</span><span class="p">())</span>
+<span class="p">}</span>
+</pre></div>
+<div class="hll"><pre><span></span><span class="nv">Drivers</span><span class="o">=[]</span>string<span class="o">{</span><span class="s2">&quot;mysql&quot;</span>, <span class="s2">&quot;postgres&quot;</span><span class="o">}</span>
+</pre></div>
+<p><a href="https://golang.org/pkg/database/sql/driver/#Driver">Driver</a> is magically
+registered during module import. It sounds like a magic, isn't? And it turns
+out it is actually very
+<a href="https://github.com/lib/pq/blob/a8bb68eb453341d8c44a1333a579a13a8b4be428/conn.go#L49">simple</a>.
+Function <code>init()</code> is package initializer, which can run arbitrary code before
+all other code. In case of SQL driver, it contains the code to register itself.</p>
+<div class="hll"><pre><span></span><span class="kd">func</span> <span class="nx">init</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">sql</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="s">&quot;postgres&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">Driver</span><span class="p">{})</span>
+<span class="p">}</span>
+</pre></div>
+<p>Similary for <a href="https://github.com/go-sql-driver/mysql/blob/6be42e0ff99645d7d9626d779001a46e39c5f280/driver.go#L168">mysql</a></p>
+<div class="hll"><pre><span></span><span class="kd">func</span> <span class="nx">init</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">sql</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="s">&quot;mysql&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">MySQLDriver</span><span class="p">{})</span>
+<span class="p">}</span>
+</pre></div>
+<h2>Registering SQL Driver</h2>
+<p>With all those knowledge one can implement dummy SQL driver</p>
+<div class="hll"><pre><span></span><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+        <span class="s">&quot;fmt&quot;</span>
+        <span class="s">&quot;database/sql&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span> <span class="nx">DummyDriver</span> <span class="kd">struct</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="c1">// implements sql.Driver interface</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">d</span> <span class="o">*</span><span class="nx">DummyDriver</span><span class="p">)</span> <span class="nx">Open</span><span class="p">(</span><span class="nx">name</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">driver</span><span class="p">.</span><span class="nx">Conn</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;[dummy]: open(%s)&quot;</span><span class="p">,</span> <span class="nx">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="kc">nil</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="nx">main</span><span class="p">()</span> <span class="p">{</span>
+
+    <span class="c1">// manually register dummy one</span>
+    <span class="nx">sql</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="s">&quot;dummy&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">DummyDriver</span><span class="p">{})</span>
+    <span class="c1">// List registered drivers, now with dummy</span>
+    <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;Drivers=%#v\n&quot;</span><span class="p">,</span> <span class="nx">sql</span><span class="p">.</span><span class="nx">Drivers</span><span class="p">())</span>
+<span class="p">}</span>
+</pre></div>
+<p>And to test it has been registered ...</p>
+<pre><code>Drivers=[]string{"dummy"}
+</code></pre>
+<p>Of course it is really dummy driver as it does not offer ANY functionality.</p>
+<h2>Connection</h2>
+<p>As we see, <code>Driver</code> interface returns
+<a href="https://golang.org/pkg/database/sql/driver/#Conn"><code>driver.Conn</code></a>, which is yet
+another interface. This defines three methods, which can be skipped for the csv case.</p>
+<p>First make <code>Open</code> real function, so let is open the file</p>
+<div class="hll"><pre><span></span><span class="kd">type</span> <span class="nx">DummyConn</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">name</span> <span class="kt">string</span>
+<span class="p">}</span>
+
+<span class="c1">// implements sql.Driver interface</span>
+<span class="c1">// Open - open file for reading, return the connection</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">d</span> <span class="o">*</span><span class="nx">DummyDriver</span><span class="p">)</span> <span class="nx">Open</span><span class="p">(</span><span class="nx">name</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">driver</span><span class="p">.</span><span class="nx">Conn</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">file</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Open</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+    <span class="p">}</span>
+    <span class="k">defer</span> <span class="nx">file</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="o">&amp;</span><span class="nx">DummyConn</span><span class="p">{</span><span class="nx">name</span><span class="p">},</span> <span class="kc">nil</span>
+<span class="p">}</span>
+</pre></div>
+<p>Here one can see the beauty of Go error reporting. File operation errors
+the same way as database server errors.</p>
+<p>This is a bit uncommon for real SQL driver, however we do not have server to
+connect to. So <code>Open</code> tries to open the file at least to return file access
+errors as early as possible. All the <em>heavy lifting</em> is done below.</p>
+<p>Here is bunch of methods not interesting for the use case ... all those returns
+<em>not implemented error</em>.</p>
+<div class="hll"><pre><span></span><span class="c1">// implements driver.Conn interface</span>
+<span class="c1">// Prepare - not implemented ...</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">DummyConn</span><span class="p">)</span> <span class="nx">Prepare</span><span class="p">(</span><span class="nx">query</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">driver</span><span class="p">.</span><span class="nx">Stmt</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;Prepare method not implemented&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="c1">// implements driver.Tx interface</span>
+<span class="c1">// Rollback - not implemented ...</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">DummyConn</span><span class="p">)</span> <span class="nx">Rollback</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;Rollback method not implemented&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+<p>So for read-only file access the connection is really dumb method, there is
+only one file path, which needs to be passed.</p>
+<h2>Do the query</h2>
+<p>SQL queries are base of the system. Here is a constraint by supporting only
+<strong>one</strong> query string. However I do prefer brevity over anything else, so here
+we are. The <code>driver.Queryer</code> interface</p>
+<div class="hll"><pre><span></span><span class="c1">// Queryer interface</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">DummyConn</span><span class="p">)</span> <span class="nx">Query</span><span class="p">(</span><span class="nx">query</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">args</span> <span class="p">[]</span><span class="nx">driver</span><span class="p">.</span><span class="nx">Value</span><span class="p">)</span> <span class="p">(</span><span class="nx">driver</span><span class="p">.</span><span class="nx">Rows</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="nx">query</span> <span class="o">!=</span> <span class="s">&quot;SELECT * FROM csv&quot;</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;Only `SELECT * FROM csv` string is implemented!&quot;</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="nx">r</span> <span class="o">:=</span> <span class="nx">csv</span><span class="p">.</span><span class="nx">NewReader</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">file</span><span class="p">)</span>
+    <span class="nx">r</span><span class="p">.</span><span class="nx">FieldsPerRecord</span> <span class="p">=</span> <span class="mi">0</span>       <span class="c1">// enforce the same number of columns</span>
+    <span class="nx">columns</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nx">Read</span><span class="p">()</span>  <span class="c1">// assume first line gives you column names</span>
+    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+    <span class="p">}</span>
+    <span class="nx">res</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">results</span><span class="p">{</span><span class="nx">r</span><span class="p">,</span> <span class="nx">columns</span><span class="p">}</span>
+    <span class="k">return</span> <span class="nx">res</span><span class="p">,</span> <span class="kc">nil</span>
+<span class="p">}</span>
+</pre></div>
+<p>Again, nothing really complicated. One needs to handle errors and then return
+correct structure with proper implemented interface methods.</p>
+<p>Query methods returns an object, which allows read of the result. Real database
+systems deal well with the read and write locks, concurrent access and more.
+You have maybe heard about database <code>cursor</code>. In a case of read only csv file,
+the situation is <em>way</em> more simpler.</p>
+<p>As each <code>Query</code> can pass independent results, opened file is a part of
+<code>results</code>. So each <code>results</code> will have independent file handle and file
+position, which is an equivalent of database <code>cursor</code>.</p>
+<h2>Read the results</h2>
+<p>One needs to implement next interface. <code>driver.Querier</code> returns object with
+<code>driver.Rows</code> interface. Here is structure <code>results</code> used to read data through
+<code>Query</code> and <code>Scan</code> methods. It provides enough to implement <code>Rows</code> interface</p>
+<div class="hll"><pre><span></span><span class="kd">type</span> <span class="nx">results</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">reader</span> <span class="o">*</span><span class="nx">csv</span><span class="p">.</span><span class="nx">Reader</span>
+    <span class="nx">columns</span> <span class="p">[]</span><span class="kt">string</span>
+<span class="p">}</span>
+</pre></div>
+<p>And implementation is fairly straightforward. We do assume that first line of
+csv file contains names of columns. So this is initialized as a part of query. It simplify <code>Columns[]</code> method a lot!</p>
+<div class="hll"><pre><span></span><span class="c1">// driver.Rows interface</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">results</span><span class="p">)</span> <span class="nx">Columns</span><span class="p">()</span> <span class="p">[]</span><span class="kt">string</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">r</span><span class="p">.</span><span class="nx">columns</span>
+<span class="p">}</span>
+</pre></div>
+<p>And to not leak file handles, close them once results are read</p>
+<div class="hll"><pre><span></span><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">results</span><span class="p">)</span> <span class="nx">Close</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">r</span><span class="p">.</span><span class="nx">file</span><span class="p">.</span><span class="nx">Close</span><span class="p">()</span>
+<span class="p">}</span>
+</pre></div>
+<p>And the most important method. Under the hood it reads data from csv file and
+put them to internal buffer <code>dest[]</code>, which is then managed by <code>database/sql</code>
+code. This is the way how data ends up in <code>Scan</code> method later on.</p>
+<pre><code>func (r *results) Next(dest []driver.Value) error {
+    d, err := r.reader.Read()
+    if err != nil {
+        return err
+    }
+    for i := 0; i != len(r.columns); i++ {
+        dest[i] = driver.Value(d[i])
+    }
+    return nil
+}
+</code></pre>
+<h2>Running together</h2>
+<div class="hll"><pre><span></span>    <span class="c1">// manually register dummy driver</span>
+    <span class="nx">sql</span><span class="p">.</span><span class="nx">Register</span><span class="p">(</span><span class="s">&quot;dummy&quot;</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">DummyDriver</span><span class="p">{})</span>
+    <span class="o">...</span>
+    <span class="c1">// prepare two return objects</span>
+    <span class="nx">rows</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="o">*</span><span class="nx">sql</span><span class="p">.</span><span class="nx">Rows</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+        <span class="nx">rows</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span> <span class="nx">err</span> <span class="p">=</span> <span class="nx">db</span><span class="p">.</span><span class="nx">Query</span><span class="p">(</span><span class="s">&quot;SELECT * FROM csv&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+            <span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="c1">// read results</span>
+    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">r</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">rows</span> <span class="p">{</span>
+        <span class="k">for</span> <span class="nx">r</span><span class="p">.</span><span class="nx">Next</span><span class="p">()</span> <span class="p">{</span>
+            <span class="kd">var</span> <span class="nx">f1</span><span class="p">,</span> <span class="nx">f2</span><span class="p">,</span> <span class="nx">f3</span> <span class="kt">string</span>
+            <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nx">Scan</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">f1</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">f2</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">f3</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+                <span class="nb">panic</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="nx">fmt</span><span class="p">.</span><span class="nx">Printf</span><span class="p">(</span><span class="s">&quot;first_name=%s, last_name=%s, username=%s\n&quot;</span><span class="p">,</span> <span class="nx">f1</span><span class="p">,</span> <span class="nx">f2</span><span class="p">,</span> <span class="nx">f3</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+<p>And a proof, result of running program</p>
+<div class="hll"><pre><span></span>$ go run main.go 
+<span class="nv">first_name</span><span class="o">=</span>Rob, <span class="nv">last_name</span><span class="o">=</span>Pike, <span class="nv">username</span><span class="o">=</span>rob
+<span class="nv">first_name</span><span class="o">=</span>Ken, <span class="nv">last_name</span><span class="o">=</span>Thompson, <span class="nv">username</span><span class="o">=</span>ken
+<span class="nv">first_name</span><span class="o">=</span>Robert, <span class="nv">last_name</span><span class="o">=</span>Griesemer, <span class="nv">username</span><span class="o">=</span>gri
+<span class="nv">first_name</span><span class="o">=</span>Rob, <span class="nv">last_name</span><span class="o">=</span>Pike, <span class="nv">username</span><span class="o">=</span>rob
+<span class="nv">first_name</span><span class="o">=</span>Ken, <span class="nv">last_name</span><span class="o">=</span>Thompson, <span class="nv">username</span><span class="o">=</span>ken
+<span class="nv">first_name</span><span class="o">=</span>Robert, <span class="nv">last_name</span><span class="o">=</span>Griesemer, <span class="nv">username</span><span class="o">=</span>gri
+</pre></div>
+<h2>Conclusion</h2>
+<p>Complete program is available at
+<a href="https://github.com/vyskocilm/gazpacho/tree/master/dbmagic">github.com/vyskocilm/gazpacho/dbmagic</a>.
+And as last method, <code>Next</code> ends at line 100. The goal to implement <code>dummy</code> sql driver in 100 lines of Go code was achieved.</p>
+<p>After going through the article reader shall be able</p>
+<ol>
+<li>To understand the <em>automagic</em> registration of SQL drivers</li>
+<li>To understand the design of <code>database/sql</code> better</li>
+<li>Hopefully enjoy the simplicity, but expressiveness of Go interfaces</li>
+<li>Learn that design of interfaces is hard and <code>database/sql</code> offer V2
+interfaces in some cases.</li>
+</ol>
+
+  
+  </div>
+
+
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- footer -->
+    <footer>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 col-md-10 mx-auto">
+            <ul class="list-inline text-center">
+              <li class="list-inline-item">
+                <a href="mailto:michal.vyskocil@gmail.com">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-mail fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://twitter.com/vyskocilm">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://github.com/vyskocilm">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="https://www.facebook.com/michal.vyskocil.148">
+                  <span class="fa-stack fa-lg">
+                    <i class="fa fa-circle fa-stack-2x"></i>
+                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+                  </span>
+                </a>
+              </li>
+            </ul>
+            <p class="copyright text-muted">Copyright &copy; Michal Vyskocil 2018.<br/>Based on <a href="https://startbootstrap.com/template-overviews/clean-blog/">Bootstrap Clean Blog</a>, powered by <a href="https://getlektor.com">Lektor SCM</a></p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="../../vendor/jquery/jquery.min.js"></script>
+    <script src="../../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom scripts for this template -->
+    <script src="../../static/clean-blog.min.js"></script>
+    </body>
+
+</html>

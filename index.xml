@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Miblog</title>
+    <link>https://vyskocilm.github.io/</link>
+    <description>Recent content on Miblog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 28 Oct 2019 21:55:29 +0100</lastBuildDate>
+    
+	<atom:link href="https://vyskocilm.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Kinkip</title>
+      <link>https://vyskocilm.github.io/kinkip/</link>
+      <pubDate>Mon, 28 Oct 2019 21:55:29 +0100</pubDate>
+      
+      <guid>https://vyskocilm.github.io/kinkip/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>qrget: easy to use privacy oriented cloudless file sharing</title>
+      <link>https://vyskocilm.github.io/qrget/</link>
+      <pubDate>Thu, 24 Oct 2019 22:25:27 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/qrget/</guid>
+      <description>The Problem How to transfer files from my laptop to my cell phone.
+
+Why is this a problem? Actually there are plenty of solutions there
+ Cloud based sharing: Google Disc, Dropbox, (Next|Own)Cloud, old fashioned FTP, SFTP, sending emails, Facebook Messenger, &amp;hellip; Bluetooth NFC USB transfer &amp;hellip;maybe there are more options there &amp;hellip;  The key factor is that except Cloud based methods I would not call others as simple to use.</description>
+    </item>
+    
+    <item>
+      <title>Correct Usage of Sql Transaction in Postgres From Go</title>
+      <link>https://vyskocilm.github.io/blog/correct-usage-of-sql-transaction-in-postgres-from-go/</link>
+      <pubDate>Tue, 21 May 2019 23:02:31 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/blog/correct-usage-of-sql-transaction-in-postgres-from-go/</guid>
+      <description>Problem Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like https://example.com?fbclid=1234 and https://example.com?fbclid=5678 we wanted to merge. Code to normalize URL was easy to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared
+pq: unexpected Parse response &#39;C&#39;  The error message was telling me nothing.</description>
+    </item>
+    
+    <item>
+      <title>Implement Sql Database Driver in 100 Lines of Go</title>
+      <link>https://vyskocilm.github.io/blog/implement-sql-database-driver-in-100-lines-of-go/</link>
+      <pubDate>Mon, 18 Feb 2019 22:59:18 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/blog/implement-sql-database-driver-in-100-lines-of-go/</guid>
+      <description>Go database/sql defines interfaces for SQL databases. Actual driver must be implemented in own package. And dependency injection is done as a part of import and build system. Lets go deeper to see how it is actually implemented.
+This exercise will result in a simple driver backed up by csv files. Who do not want to SELECT from csv file?
+Disclaimer: I wrote it in order to learn database/sql and to learn more about design of APIs for go.</description>
+    </item>
+    
+    <item>
+      <title>Speeding Your Ci With Go Mod Download Again</title>
+      <link>https://vyskocilm.github.io/blog/speeding-your-ci-with-go-mod-download-again/</link>
+      <pubDate>Wed, 13 Feb 2019 22:56:28 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/blog/speeding-your-ci-with-go-mod-download-again/</guid>
+      <description>Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image.</description>
+    </item>
+    
+    <item>
+      <title>Adblocking in Turris Omnia</title>
+      <link>https://vyskocilm.github.io/blog/adblocking-in-turris-omnia/</link>
+      <pubDate>Sat, 29 Dec 2018 22:39:57 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/blog/adblocking-in-turris-omnia/</guid>
+      <description>As a long time Firefox user I was horrified to use web browser with very limited blocking capabilities. However Samsung Browser is very handy tool for some sites. However the number of spam, scam, or porn pages and advertisements makes browsing there very unpleasant experience. Especially if your kids want to browse that way.
+However I bought Turris Omnia especially because I wanted to hack around.
+Source: turris.cz
+Options As router provides Doman Name Service for all devices in local network, the most common way is to block DNS lookups for specified domains.</description>
+    </item>
+    
+    <item>
+      <title>Golang CORS and Testing</title>
+      <link>https://vyskocilm.github.io/blog/golang-cors-and-testing/</link>
+      <pubDate>Tue, 18 Dec 2018 19:27:15 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/blog/golang-cors-and-testing/</guid>
+      <description>Working on a web project spread in more domains brings you to Cross-Origin Resource Sharing. Browsers use it to if it code from one origin can call HTTP methods placed elsewhere. Responses must contain specific headers, like Access-Control-Allow-Origin, which must match requesting Origin of the site issuing the call. More information about CORS can be found at html5rocks.
+CORS look like simple thing to develop. Just add a few HTTP headers for regular methods.</description>
+    </item>
+    
+    <item>
+      <title>Go 111 Modules Monorepo and Shared Code</title>
+      <link>https://vyskocilm.github.io/blog/go-111-modules-monorepo-and-shared-code/</link>
+      <pubDate>Fri, 09 Nov 2018 19:19:40 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/blog/go-111-modules-monorepo-and-shared-code/</guid>
+      <description>I recently joined company as a Python developer. However it turns out there is bigger need to evolve their code written in golang (and PHP and Javascript). I am not an expert in go, so it took me a while to figure things out. However I love to learn new things and to solve new puzzles (the real ones, there is nothing more boring to solve artificial ones for me)</description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>https://vyskocilm.github.io/projects/</link>
+      <pubDate>Mon, 29 Oct 2018 15:06:47 +0100</pubDate>
+      
+      <guid>https://vyskocilm.github.io/projects/</guid>
+      <description>Some nice things I did in the past
+ 42ity: open source monitoring for DataCenters (team leader, founder, one of architects) qrget: easy to use privacy oriented file sharing Kinkip: JS Helper for Piknik game openSUSE/osc  ZeroMQ See https://github.com/zeromq
+ (https://github.com/zeromq)[Graphviz support](https://github.com/zeromq/zproto/blob/master/src/zproto_dot.gsl) generating state machine diagrams for client and server.
+ Added API model generator for zproto_codec_c and zproto_codec_c_v1.
+ Added methods loading and saving zproto generated messages as ZPL.</description>
+    </item>
+    
+    <item>
+      <title>About Me</title>
+      <link>https://vyskocilm.github.io/about/</link>
+      <pubDate>Wed, 24 Oct 2018 22:01:48 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/about/</guid>
+      <description> Michal Vyskocil is a software developer, father, former manager, Linux and Open Source contributor and user. Opensource contributor to ZeroMQ and openSUSE projects. Former technical lead of 42ITY. Now working as independent consultant (backend, frontend)
+ See my
+ LinkedIn profile https://www.linkedin.com/in/michalvyskocil/ GitHub account: https://github.com/vyskocilm Twitter account: http://twitter.com/vyskocilm  </description>
+    </item>
+    
+    <item>
+      <title>Limiting Your Gorutines</title>
+      <link>https://vyskocilm.github.io/blog/limiting-your-gorutines/</link>
+      <pubDate>Wed, 10 Oct 2018 19:11:24 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/blog/limiting-your-gorutines/</guid>
+      <description>Limiting your goroutines How to properly implement goroutine pool in golang with input and output channel(s). Text expects knowledge about golang and about Go Concurency. That means I am not going to explain what goroutine, channel or defer actually are.
+Intro Gorutines are some kind of lightweight threads managed by userspace golang runtime. They save memory and context switches. Therefor it is possible to spawn literally Millions! of them. However as BenPar^W Voltaire said</description>
+    </item>
+    
+    <item>
+      <title>&#39;Modern&#39; Javascript Development for Oldies</title>
+      <link>https://vyskocilm.github.io/blog/modern-javascript-development-for-oldies/</link>
+      <pubDate>Wed, 04 Apr 2018 22:45:29 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/blog/modern-javascript-development-for-oldies/</guid>
+      <description>My Javascript experience When I started my career, I was working as Junior Developer on web based application. We have had parts written in Java Server Pages, which was great technology combining elegance of PHP with easy to use of Java. We had something in Java servlets, which allows us easier testing and compilation up front. Other parts were in PL/SQL. And of course, the Javascript. And most of our clients has been using Internet Explorer 6 at the time!</description>
+    </item>
+    
+    <item>
+      <title>Make your /usr/local user writable</title>
+      <link>https://vyskocilm.github.io/blog/make-your-usrlocal-user-writable/</link>
+      <pubDate>Sun, 21 Jan 2018 22:18:29 +0200</pubDate>
+      
+      <guid>https://vyskocilm.github.io/blog/make-your-usrlocal-user-writable/</guid>
+      <description>About I am the long term user of Linux based operating systems. And as a C developer mostly working on stuff built by GNU autotools. Therefor I need to quickly build, install and test new versions of the software. I usually make changes to lower layers (like zeromq/czmq).
+Typical advice for Linux is to not run things as a root!
+What is root  Linux operating systems are multi user ones.</description>
+    </item>
+    
+  </channel>
+</rss>

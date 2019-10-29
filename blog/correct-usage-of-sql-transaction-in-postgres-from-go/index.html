@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <title>Correct Usage of Sql Transaction in Postgres From Go - Miblog</title>
+  <meta name="generator" content="Hugo 0.58.3" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Michal Vyskocil">
+  
+  <meta name="description" content="Problem Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like https://example.com?fbclid=1234 and https://example.com?fbclid=5678 we wanted to merge. Code to normalize URL was easy to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared
+pq: unexpected Parse response &#39;C&#39;  The error message was telling me nothing.">
+  
+  <meta name="keywords" content="Linux, Go, Python, Javascript, Typescript">
+  <meta property="og:site_name" content="Miblog">
+  <meta property="og:title" content="Correct Usage of Sql Transaction in Postgres From Go">
+  <meta property="og:url" content="https://vyskocilm.github.io/blog/correct-usage-of-sql-transaction-in-postgres-from-go/">
+  
+  <meta property="og:image" content="https://vyskocilm.github.io/img/postgres-flicker.jpg">
+  
+  
+  <meta property="og:description" content="Problem Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like https://example.com?fbclid=1234 and https://example.com?fbclid=5678 we wanted to merge. Code to normalize URL was easy to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared
+pq: unexpected Parse response &#39;C&#39;  The error message was telling me nothing.">
+  
+  <meta property="og:type" content="blog">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:creator" content="@vyskocilm">
+  <meta name="twitter:title" content="Correct Usage of Sql Transaction in Postgres From Go">
+  <meta name="twitter:url" content="https://vyskocilm.github.io/blog/correct-usage-of-sql-transaction-in-postgres-from-go/">
+  
+  <meta name="twitter:description" content="Problem Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like https://example.com?fbclid=1234 and https://example.com?fbclid=5678 we wanted to merge. Code to normalize URL was easy to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared
+pq: unexpected Parse response &#39;C&#39;  The error message was telling me nothing.">
+  
+  
+  <meta name="twitter:image:src" content="https://vyskocilm.github.io/img/postgres-flicker.jpg">
+  
+  <link rel="shortcut icon" href="https://vyskocilm.github.io/image/theme/favicon.ico">
+   <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css">
+  <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="alternate" href="https://vyskocilm.github.io/index.xml" type="application/rss+xml" title="Miblog">
+
+  
+</head>
+
+<body>
+  <div id="wrap" class="wrap">
+    <header class="header">
+  <div class="site-title"><a href="/">Miblog</a></div>
+  <p class="site-desc"></p>
+  
+</header>
+
+    <main class="main main--single">
+  
+      
+      <article class="post"　itemscope itemtype="http://schema.org/BlogPosting">
+        <h1 class="post__title">Correct Usage of Sql Transaction in Postgres From Go</h1>
+        <p class="post__date">
+          <time itemprop="datePublished" datetime="2019-05-21T23:02:31&#43;02:00">2019.05.21</time>
+        </p>
+        <div class="post-content">
+          
+
+<h2 id="problem">Problem</h2>
+
+<p>Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like <code>https://example.com?fbclid=1234</code> and <code>https://example.com?fbclid=5678</code> we wanted to merge.  Code to normalize URL was easy
+to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared</p>
+
+<pre><code class="language-sh"> pq: unexpected Parse response 'C'
+</code></pre>
+
+<p>The error message was telling me <em>nothing</em>. And what is worse <a href="https://duck.com">ducking</a> did not revealed anything. Except notes about Postgres protocol internals., which was something I did not wanted to dig into.  It was a hint from <a href="https://github.com/karolhrdina">@karolhrdina</a> who have explained me the root cause well enough, so I can share my experience in my blog. Lessons learned - always work with a great colleagues, you can learn a lot from them!</p>
+
+<p>Following text assume reader know about Go, particularly <code>database/sql</code> and <code>lib/pq</code>,  Postgres or SQL databases in general.</p>
+
+<h2 id="the-code">The code</h2>
+
+<p>Following snippet omits a lot of details, but shows the algorithm</p>
+
+<pre><code class="language-go">rows, err := tx.Query(&quot;SELECT id, url, visists FROM schema.url WHERE url LIKE $1 ORDER BY id&quot;, pattern)
+
+for rows.Next() {
+        err = rows.Scan(&amp;id, &amp;url, &amp;visits)
+        urlNormalized := URLNormalize(url)
+        if url != urlNormalized {
+                _, err = tx.Exec(&quot;INSERT INTO schema.url AS u (url, visits) VALUES ($1, 1) ON CONFLICT url DO UPDATE SET visists=u.visists+$2;&quot;, urlNormalized, vists)
+                _, err = tx.Exec(&quot;DELETE FROM schema.url WHERE id=$1&quot;, id)
+        }
+}
+</code></pre>
+
+<ol>
+<li>For all urls matching the bad pattern do</li>
+<li>Try to normalize and if there is normalized version then</li>
+<li>UPSERT new entry or increase a number of visits</li>
+<li>&hellip; and program crashes</li>
+</ol>
+
+<p>The problem I was facing is connected with how Postgres protocol works. It turns out that you can&rsquo;t call <code>Exec</code> if you did not read all the data from previous <code>Query</code>. The problem is that most of Postgres drivers including its own<code>libpq</code> does <em>fetch all the rows</em> by default. It gives the false impression that following code is legal and works.  Go driver <code>lib/pq</code> does not do it. <code>plpgsql</code> does handle this case well. Other language bindings fetch the data by default.</p>
+
+<p>However fetching the data was not an option as there are millions of entries. And using different language than Go was impractical. Url normalization has been written in Go and there are huge differences between language parsers of URLs between languages.  For example PHP handles query strings in really <a href="https://www.php.net/manual/en/function.parse-str.php#76792">bizzare</a> way incompatible with CGI BIN, Perl and any other language. One can build Go code as (C like) shared library, but that would be somewhat big effort.</p>
+
+<p>Fetching data was an option, however given the number of entries, one would need to play with <code>LIMIT</code> and <code>OFFSET</code> to achieve reasonable size of input data.</p>
+
+<h2 id="do-it-as-plpgsql">Do it as plpgsql</h2>
+
+<p>There is object called <a href="https://www.postgresql.org/docs/10/plpgsql-cursors.html">cursor</a>. Cursors are intended exactly for this use case. They <strong>encapsulates</strong> the query and one can read a few results at the time. And <code>plpgsql</code> uses cursors under the hood. It turns out <code>CURSOR</code> can be used from Go code as well</p>
+
+<p>So Go code changes a bit. There is no <code>*sql.Rows</code> and no <code>Next()</code> method to be used in the loop.</p>
+
+<pre><code class="language-go">_, err = tx.Exec(&quot;DECLARE url_cur CURSOR FOR SELECT id, url, visits FROM schema.url WHERE url LIKE $1 ORDER BY id&quot;, pattern)
+defer tx.Exec(&quot;CLOSE url_cur&quot;)
+
+for {
+        err = tx.QueryRow(&quot;FETCH NEXT FROM url_cur&quot;).Scan(&amp;id, &amp;url, &amp;visits)
+	if err == sql.ErrNoRows {
+	        break
+	} else if err != nil {
+	        _ = tx.Rollback()
+		panic(err)
+	}
+        // call tx.Exec with UPSERT and DELETE
+}
+</code></pre>
+
+<p>The advantages are</p>
+
+<ol>
+<li>No new language in the stack, neither complicated integration of Go code into another language</li>
+<li>It is efficient and works with one entry at the time</li>
+<li>There are minimal changes to Go code</li>
+<li>It works, data are written on <code>tx.Commit()</code></li>
+</ol>
+
+<p>Big thanks comes to <a href="https://github.com/hypnoglow">@hypnoglow</a> and his comment at Github <a href="https://github.com/lib/pq/issues/635#issuecomment-327800640">issue#635</a></p>
+
+<p>Logo by kubina@Flickr: [<a href="https://www.flickr.com/photos/kubina/912714753">https://www.flickr.com/photos/kubina/912714753</a>]</p>
+
+        </div>
+      </article>
+      
+    </main>
+    <footer class="footer">
+  <section class="author">
+    <div class="pure-g">
+      <div class="author__image pure-u-1-5 pure-u-md-1-8">
+        <img src="https://vyskocilm.github.io/image/theme/mvy.jpg" alt="">
+      </div>
+      <div class="author__info pure-u-4-5 pure-u-md-7-8">
+        
+        <h3>Michal Vyskocil</h3>
+        
+        
+        <p>I am software developer and a former field manager with 12&#43; years of experience, Prague, Czech Republic</p>
+        
+        <small>[&nbsp;<a href="https://vyskocilm.github.io/about">About</a>&nbsp;|&nbsp;<a href="https://vyskocilm.github.io/blog">Blog</a>&nbsp;|&nbsp;<a href="https://vyskocilm.github.io/projects">Projects</a>&nbsp;] (powered by <a href="https://gohugo.io">Hugo</a>&nbsp;❤&nbsp;<a href="https://github.com/diwao/hestia-pure">Hestia Pure</a>)</small>
+        <ul class="author__links">
+          
+          <li>
+            <a aria-label="Link to github" href="https://github.com/vyskocilm" target="_blank">
+              <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGVpZ2h0PSIxMDI0IiB3aWR0aD0iMTAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNTEyIDBDMjI5LjI1IDAgMCAyMjkuMjUgMCA1MTJjMCAyMjYuMjUgMTQ2LjY4OCA0MTguMTI1IDM1MC4xNTYgNDg1LjgxMiAyNS41OTQgNC42ODggMzQuOTM4LTExLjEyNSAzNC45MzgtMjQuNjI1IDAtMTIuMTg4LTAuNDY5LTUyLjU2Mi0wLjcxOS05NS4zMTJDMjQyIDkwOC44MTIgMjExLjkwNiA4MTcuNSAyMTEuOTA2IDgxNy41Yy0yMy4zMTItNTkuMTI1LTU2Ljg0NC03NC44NzUtNTYuODQ0LTc0Ljg3NS00Ni41MzEtMzEuNzUgMy41My0zMS4xMjUgMy41My0zMS4xMjUgNTEuNDA2IDMuNTYyIDc4LjQ3IDUyLjc1IDc4LjQ3IDUyLjc1IDQ1LjY4OCA3OC4yNSAxMTkuODc1IDU1LjYyNSAxNDkgNDIuNSA0LjY1NC0zMyAxNy45MDQtNTUuNjI1IDMyLjUtNjguMzc1QzMwNC45MDYgNzI1LjQzOCAxODUuMzQ0IDY4MS41IDE4NS4zNDQgNDg1LjMxMmMwLTU1LjkzOCAxOS45NjktMTAxLjU2MiA1Mi42NTYtMTM3LjQwNi01LjIxOS0xMy0yMi44NDQtNjUuMDk0IDUuMDYyLTEzNS41NjIgMCAwIDQyLjkzOC0xMy43NSAxNDAuODEyIDUyLjUgNDAuODEyLTExLjQwNiA4NC41OTQtMTcuMDMxIDEyOC4xMjUtMTcuMjE5IDQzLjUgMC4xODggODcuMzEyIDUuODc1IDEyOC4xODggMTcuMjgxIDk3LjY4OC02Ni4zMTIgMTQwLjY4OC01Mi41IDE0MC42ODgtNTIuNSAyOCA3MC41MzEgMTAuMzc1IDEyMi41NjIgNS4xMjUgMTM1LjUgMzIuODEyIDM1Ljg0NCA1Mi42MjUgODEuNDY5IDUyLjYyNSAxMzcuNDA2IDAgMTk2LjY4OC0xMTkuNzUgMjQwLTIzMy44MTIgMjUyLjY4OCAxOC40MzggMTUuODc1IDM0Ljc1IDQ3IDM0Ljc1IDk0Ljc1IDAgNjguNDM4LTAuNjg4IDEyMy42MjUtMC42ODggMTQwLjUgMCAxMy42MjUgOS4zMTIgMjkuNTYyIDM1LjI1IDI0LjU2MkM4NzcuNDM4IDkzMCAxMDI0IDczOC4xMjUgMTAyNCA1MTIgMTAyNCAyMjkuMjUgNzk0Ljc1IDAgNTEyIDB6Ii8+PC9zdmc+" alt="">
+            </a>
+          </li>
+          
+          
+          <li>
+            <a href="https://twitter.com/vyskocilm" target="_blank">
+              <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjxzdmcgaGVpZ2h0PSI1MDAiIGlkPSJzdmcyIiB2ZXJzaW9uPSIxLjEiIHdpZHRoPSI1MDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIiB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzIGlkPSJkZWZzNCIvPjxnIGlkPSJsYXllcjEiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsLTU1Mi4zNjIxOCkiPjxyZWN0IGhlaWdodD0iNTAwIiBpZD0icmVjdDI5OTAtMSIgcng9IjI1MCIgcnk9IjI1MCIgc3R5bGU9ImZpbGw6IzU1YWNlZTtmaWxsLW9wYWNpdHk6MTtzdHJva2U6bm9uZSIgd2lkdGg9IjUwMCIgeD0iMCIgeT0iNTUyLjM2MjE4Ii8+PGcgaWQ9ImxheWVyMS05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNTQ5LjAwNTE1LDgwLjI5NDM3MikiLz48ZyBpZD0ibGF5ZXIxLTYiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC01NzUuNzE0MjksMzkuOTk5OTk5KSIvPjxnIGlkPSJsYXllcjEtOTMiIHRyYW5zZm9ybT0ibWF0cml4KDAuOTk5Mjg5NDUsMCwwLDAuOTk5Mjg5NDUsNDc0LjcwMDIsLTQwLjgxOTI4KSIvPjxwYXRoIGQ9Im0gMzA5Ljg1LDY3Mi4zMTIxOCBjIC0zNS40NzA3OSwwLjg5ODc5IC02My45MjUsMjkuOTMxMzggLTYzLjkyNSw2NS42MjUgMCw1LjEzODI3IDAuNTUxMjIsMTAuMTYxNTYgMS42NzUsMTQuOTc1IC01NC41NjU2NywtMi43NDEyNiAtMTAyLjk0Mjg3LC0yOC44Nzc0OSAtMTM1LjMyNSwtNjguNiAtNS42NTE0Nyw5LjY5MTkxIC04LjksMjAuOTgxNTggLTguOSwzMy4wMjUgMCwyMi43NzQ2NyAxMS42MDgwOSw0Mi44NTQzOCAyOS4yMjUsNTQuNjI1IC0xMC43NTcyMiwtMC4zNDQyOCAtMjAuODk2MDYsLTMuMzA3NTggLTI5Ljc1LC04LjIyNSAtMC4wMDUsMC4yNzI4MiAwLDAuNTcwNjkgMCwwLjg1IDAsMzEuODA0MDIgMjIuNjM3OSw1OC4zMDg4IDUyLjY3NSw2NC4zNSAtNS41MDg1MiwxLjQ5NDA2IC0xMS4zMTA3NSwyLjMgLTE3LjMsMi4zIC00LjIzNTM0LDAgLTguMzQyMDMsLTAuNDAxOTggLTEyLjM1LC0xLjE3NSA4LjM2MDIyLDI2LjA4MTA5IDMyLjU3NTA2LDQ1LjA3Mzg1IDYxLjMsNDUuNiAtMjIuNDY5MzcsMTcuNjEwNDMgLTUwLjczNTM0LDI4LjEgLTgxLjUsMjguMSAtNS4yOTQxNiwwIC0xMC41MzY3NSwtMC4yODkzOCAtMTUuNjc1LC0wLjkgMjkuMDYyNzIsMTguNjM2ODMgNjMuNTUyODIsMjkuNSAxMDAuNjI1LDI5LjUgMTIwLjc2NTUyLDAgMTg2LjgsLTEwMC4wNDA1OCAxODYuOCwtMTg2LjggMCwtMi44NDUyIC0wLjA1MTcsLTUuNzA1NzcgLTAuMTc1LC04LjUyNSAxMi44MjI5NCwtOS4yMzcyIDIzLjk1NDU0LC0yMC44MDc3NiAzMi43NSwtMzMuOTc1IC0xMS43NjQxLDUuMjI5MjIgLTI0LjQxNTg2LDguNzcxNDYgLTM3LjcsMTAuMzUgMTMuNTYzNDYsLTguMTE5OSAyMy45NzA2MSwtMjAuOTgxNjYgMjguODc1LC0zNi4zMjUgLTEyLjY4NjUyLDcuNTI4NzcgLTI2LjczOTkzLDEzLjAwMDg1IC00MS43LDE1Ljk1IC0xMS45NzE5NywtMTIuNzU3OTggLTI5LjA0MTM3LC0yMC43MjUgLTQ3LjkyNSwtMjAuNzI1IC0wLjU2NjQ2LDAgLTEuMTM2OTgsLTAuMDE0MyAtMS43LDAgeiIgaWQ9InJlY3QyOTg5IiBzdHlsZT0iZmlsbDojZmZmZmZmO2ZpbGwtb3BhY2l0eToxO3N0cm9rZTpub25lIi8+PC9nPjwvc3ZnPg==" alt="">
+            </a>
+          </li>
+          
+          
+          <li>
+            <a aria-label="RSS feed" href="https://vyskocilm.github.io/index.xml"><img src="data:image/png;base64,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" alt="RSS"/></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</footer>
+
+  </div>
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script src="/js/script.js"></script>
+
+</body>
+</html>

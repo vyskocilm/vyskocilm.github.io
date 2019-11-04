@@ -2,33 +2,42 @@
 <html lang="en-us">
 <head>
   <meta charset="utf-8">
-  <title>Miblog</title>
+  <title>Easy way to check go.mod replace via Linux namespaces - Miblog</title>
   <meta name="generator" content="Hugo 0.58.3" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
-  <meta name="description" content="">
+  <meta name="description" content="The common problem for monorepo and go modules is that the following
+ It is really easy to miss the go.mod replace directive
+ In a following text we will learn more about Linux, namespaces and container technologies like Docker or Podman.
+The problem While go build is awesome tool, doing a lot of things in the background has sometimes consequences. And the typical consequences is when we build the software from an environment without network access.">
   
   <meta name="keywords" content="Linux, Go, Python, Javascript, Typescript">
   <meta property="og:site_name" content="Miblog">
-  <meta property="og:title" content="Miblog">
-  <meta property="og:url" content="https://vyskocil.org/">
+  <meta property="og:title" content="Easy way to check go.mod replace via Linux namespaces">
+  <meta property="og:url" content="https://vyskocil.org/blog/easy-way-to-check-gomod-replace/">
   
-  <meta property="og:image" content="https://vyskocil.org/image/theme/note2.png">
+  <meta property="og:image" content="https://vyskocil.org/img/broken-chain.png">
   
   
-  <meta property="og:description" content="">
+  <meta property="og:description" content="The common problem for monorepo and go modules is that the following
+ It is really easy to miss the go.mod replace directive
+ In a following text we will learn more about Linux, namespaces and container technologies like Docker or Podman.
+The problem While go build is awesome tool, doing a lot of things in the background has sometimes consequences. And the typical consequences is when we build the software from an environment without network access.">
   
   <meta property="og:type" content="blog">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:creator" content="@vyskocilm">
-  <meta name="twitter:title" content="Miblog">
-  <meta name="twitter:url" content="https://vyskocil.org/">
+  <meta name="twitter:title" content="Easy way to check go.mod replace via Linux namespaces">
+  <meta name="twitter:url" content="https://vyskocil.org/blog/easy-way-to-check-gomod-replace/">
   
-  <meta name="twitter:description" content="">
+  <meta name="twitter:description" content="The common problem for monorepo and go modules is that the following
+ It is really easy to miss the go.mod replace directive
+ In a following text we will learn more about Linux, namespaces and container technologies like Docker or Podman.
+The problem While go build is awesome tool, doing a lot of things in the background has sometimes consequences. And the typical consequences is when we build the software from an environment without network access.">
   
   
-  <meta name="twitter:image:src" content="https://vyskocil.org/image/theme/note2.png">
+  <meta name="twitter:image:src" content="https://vyskocil.org/img/broken-chain.png">
   
   <link rel="shortcut icon" href="https://vyskocil.org/image/theme/favicon.ico">
    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
@@ -44,58 +53,117 @@
 <body>
   <div id="wrap" class="wrap">
     <header class="header">
-  
-  <h1><a href="https://vyskocil.org/">Miblog</a></h1>
+  <div class="site-title"><a href="/">Miblog</a></div>
   <p class="site-desc"></p>
   
 </header>
 
-    <main class="main">
-      <section class="articles">
-        <h2>Recent Post</h2>
-        <div class="pure-g">
-          
-            <article class="card pure-u-1 pure-u-md-1-2 pure-u-lg-1-3">
-  <a class="card__thumb" href="https://vyskocil.org/blog/modern-javascript-development-for-oldies/">
-    <img src="/image/theme/note2.jpg" alt="">
-  </a>
-  <a href="https://vyskocil.org/blog/modern-javascript-development-for-oldies/">
-    <h3>&#39;Modern&#39; Javascript Development for Oldies</h3>
-  </a>
-  <span>
-    <time datetime=" 2018-04-04T22:45:29&#43;02:00">2018.04.04</time>
-  </span>
-  <p >My Javascript experience When I started my career, I was working as Junior Developer on web based application. We have had parts written in Java Server Pages, which was great technology combining elegance of PHP with easy to use of Java. We had something in Java servlets, which allows us easier testing and compilation up front. Other parts were in PL/SQL. And of course, the Javascript. And most of our clients has been using Internet Explorer 6 at the time!...</p>
-</article>
-
-          
-            <article class="card pure-u-1 pure-u-md-1-2 pure-u-lg-1-3">
-  <a class="card__thumb" href="https://vyskocil.org/blog/make-your-usrlocal-user-writable/">
-    <img src="/image/theme/note2.jpg" alt="">
-  </a>
-  <a href="https://vyskocil.org/blog/make-your-usrlocal-user-writable/">
-    <h3>Make your /usr/local user writable</h3>
-  </a>
-  <span>
-    <time datetime=" 2018-01-21T22:18:29&#43;02:00">2018.01.21</time>
-  </span>
-  <p >About I am the long term user of Linux based operating systems. And as a C developer mostly working on stuff built by GNU autotools. Therefor I need to quickly build, install and test new versions of the software. I usually make changes to lower layers (like zeromq/czmq).
-Typical advice for Linux is to not run things as a root!
-What is root  Linux operating systems are multi user ones....</p>
-</article>
-
-          
-        </div>
-      </section>
+    <main class="main main--single">
+  
       
-        <nav class="pagination">
+      <article class="post"　itemscope itemtype="http://schema.org/BlogPosting">
+        <h1 class="post__title">Easy way to check go.mod replace via Linux namespaces</h1>
+        <p class="post__date">
+          <time itemprop="datePublished" datetime="2019-11-04T10:26:04&#43;01:00">2019.11.04</time>
+        </p>
+        <div class="post-content">
           
-          <a class="pagination__link pagination__link--prev" href="/">&lt; Prev</a>
-          
-          <span class="pagination__current">2 / 2 Page</span>
-          
-        </nav>
-        
+
+<p>The common problem for monorepo and go modules is that the following</p>
+
+<blockquote>
+<p>It is really easy to miss the go.mod replace directive</p>
+</blockquote>
+
+<p>In a following text we will learn more about Linux, namespaces and container
+technologies like Docker or Podman.</p>
+
+<h2 id="the-problem">The problem</h2>
+
+<p>While <code>go build</code> is awesome tool, doing a lot of things in the background has
+sometimes consequences. And the typical consequences is when we build the
+software from an environment without network access. It should be <strong>every</strong>
+build environment.</p>
+
+<p>Both <a href="openSUSE">https://opensuse</a> and [<a href="https://getfedora.org][Fedora">https://getfedora.org][Fedora</a>]
+disallow network access from their build workers. So that every build dependency
+must be correctly packaged and installed as a part of build process. And I am
+sure others Linux distributions have the same policy.</p>
+
+<p>Similar case is a build of Docker image, where we don&rsquo;t (and don&rsquo;t want to)
+deploy SSH keys to access private git instance.</p>
+
+<pre><code>Step 4/9 : RUN go build
+go: example.org/project/foo/bar@v0.0.0-20191028170754-6e9b624fadee requires
+        example.org/project/foo/spamm@v0.0.0-20191028170754-6e9b624fadee:
+        reading https://api.example.org/2.0/repositories/projects/foo?fields=scm: 403 Forbidden
+</code></pre>
+
+<p>There are a few ways for developer to solve it</p>
+
+<h2 id="turn-off-networking">Turn off networking</h2>
+
+<p>It is harsh method and I won&rsquo;t be happy to have my audiostreams interrupted.
+Sadly it is truly multiplatform way.</p>
+
+<h2 id="unshare">Unshare</h2>
+
+<p>Linux kernel has a concept of
+<a href="https://en.wikipedia.org/wiki/Linux_namespaces">namespaces</a>. They simply allow
+to virtualize several kernel resources and to pretend to userspace they are
+running on their own computer. Namespaces are key concept of all container
+technologies like Docker, Podman, LXC and others.</p>
+
+<p>System allows you to manipulate with namespaces is via
+<a href="unshare">https://github.com/karelzak/util-linux/blob/master/sys-utils/unshare.1</a>
+command and system call. This way one can create private network namespace,
+which is not configured by default and can&rsquo;t connect to anything.</p>
+
+<pre><code>curl --silent example.com | wc -l
+46
+unshare -r -n curl example.com
+curl: (7) Couldn't connect to server
+</code></pre>
+
+<p>Command does following</p>
+
+<ol>
+<li><code>-r, --map-root-user</code> maps current user and group id to root. Not that this
+is fully secure, because from non-namespaced point of view is this still the
+same user.</li>
+<li><code>-n, --net</code> create own empty network namespace</li>
+</ol>
+
+<p>So running <code>unshare -r -n go build</code> will ensure that <code>go build</code> does not have
+access to network at all.</p>
+
+<h2 id="containers">Containers</h2>
+
+<p>As I have mentioned namespaces are key for container technologies. And it is
+not surprising that both <a href="Docker">https://www.docker.com/</a> and
+<a href="Podman">https://podman.io</a>, and most likely all others, can do the same.</p>
+
+<pre><code>$ docker run alpine:latest ping -c 1 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+64 bytes from 8.8.8.8: seq=0 ttl=54 time=1.426 ms
+
+--- 8.8.8.8 ping statistics ---
+1 packets transmitted, 1 packets received, 0% packet loss
+round-trip min/avg/max = 1.426/1.426/1.426 ms
+</code></pre>
+
+<p>With network none</p>
+
+<pre><code>$ docker run --network=none alpine:latest ping -c1 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+ping: sendto: Network unreachable
+</code></pre>
+
+<p>Logo by Clker-Free-Vector-Images-3736@Pixbay: [<a href="https://pixabay.com/vectors/chain-broken-link-freedom-297842/">https://pixabay.com/vectors/chain-broken-link-freedom-297842/</a>]</p>
+
+        </div>
+      </article>
+      
     </main>
     <footer class="footer">
   <section class="author">

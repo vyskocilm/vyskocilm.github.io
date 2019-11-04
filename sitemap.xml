@@ -3,23 +3,28 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://vyskocil.org/kinkip/</loc>
-    <lastmod>2019-10-28T21:55:29+01:00</lastmod>
+    <loc>https://vyskocil.org/blog/</loc>
+    <lastmod>2019-11-04T10:26:04+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://vyskocil.org/blog/easy-way-to-check-gomod-replace/</loc>
+    <lastmod>2019-11-04T10:26:04+01:00</lastmod>
   </url>
   
   <url>
     <loc>https://vyskocil.org/</loc>
+    <lastmod>2019-11-04T10:26:04+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://vyskocil.org/kinkip/</loc>
     <lastmod>2019-10-28T21:55:29+01:00</lastmod>
   </url>
   
   <url>
     <loc>https://vyskocil.org/qrget/</loc>
     <lastmod>2019-10-24T22:25:27+02:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://vyskocil.org/blog/</loc>
-    <lastmod>2019-05-21T23:02:31+02:00</lastmod>
   </url>
   
   <url>

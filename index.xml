@@ -6,10 +6,22 @@
     <description>Recent content on Miblog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 28 Oct 2019 21:55:29 +0100</lastBuildDate>
+    <lastBuildDate>Mon, 04 Nov 2019 10:26:04 +0100</lastBuildDate>
     
 	<atom:link href="https://vyskocil.org/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Easy way to check go.mod replace via Linux namespaces</title>
+      <link>https://vyskocil.org/blog/easy-way-to-check-gomod-replace/</link>
+      <pubDate>Mon, 04 Nov 2019 10:26:04 +0100</pubDate>
+      
+      <guid>https://vyskocil.org/blog/easy-way-to-check-gomod-replace/</guid>
+      <description>The common problem for monorepo and go modules is that the following
+ It is really easy to miss the go.mod replace directive
+ In a following text we will learn more about Linux, namespaces and container technologies like Docker or Podman.
+The problem While go build is awesome tool, doing a lot of things in the background has sometimes consequences. And the typical consequences is when we build the software from an environment without network access.</description>
+    </item>
     
     <item>
       <title>Kinkip</title>

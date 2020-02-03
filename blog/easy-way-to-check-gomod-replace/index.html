@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Easy way to check go.mod replace via Linux namespaces - Miblog</title>
-  <meta name="generator" content="Hugo 0.58.3" />
+  <meta name="generator" content="Hugo 0.63.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
@@ -67,82 +67,58 @@ The problem While go build is awesome tool, doing a lot of things in the backgro
           <time itemprop="datePublished" datetime="2019-11-04T10:26:04&#43;01:00">2019.11.04</time>
         </p>
         <div class="post-content">
-          
-
-<p>The common problem for monorepo and go modules is that the following</p>
-
+          <p>The common problem for monorepo and go modules is that the following</p>
 <blockquote>
 <p>It is really easy to miss the go.mod replace directive</p>
 </blockquote>
-
 <p>In a following text we will learn more about Linux, namespaces and container
 technologies like Docker or Podman.</p>
-
 <h2 id="the-problem">The problem</h2>
-
 <p>While <code>go build</code> is awesome tool, doing a lot of things in the background has
 sometimes consequences. And the typical consequences is when we build the
 software from an environment without network access. It should be <strong>every</strong>
 build environment.</p>
-
-<p>Both <a href="openSUSE">https://opensuse</a> and [<a href="https://getfedora.org][Fedora">https://getfedora.org][Fedora</a>]
+<p>Both <a href="openSUSE">https://opensuse</a> and [https://getfedora.org][Fedora]
 disallow network access from their build workers. So that every build dependency
 must be correctly packaged and installed as a part of build process. And I am
 sure others Linux distributions have the same policy.</p>
-
 <p>Similar case is a build of Docker image, where we don&rsquo;t (and don&rsquo;t want to)
 deploy SSH keys to access private git instance.</p>
-
 <pre><code>Step 4/9 : RUN go build
 go: example.org/project/foo/bar@v0.0.0-20191028170754-6e9b624fadee requires
         example.org/project/foo/spamm@v0.0.0-20191028170754-6e9b624fadee:
         reading https://api.example.org/2.0/repositories/projects/foo?fields=scm: 403 Forbidden
-</code></pre>
-
-<p>There are a few ways for developer to solve it</p>
-
+</code></pre><p>There are a few ways for developer to solve it</p>
 <h2 id="turn-off-networking">Turn off networking</h2>
-
 <p>It is harsh method and I won&rsquo;t be happy to have my audiostreams interrupted.
 Sadly it is truly multiplatform way.</p>
-
 <h2 id="unshare">Unshare</h2>
-
 <p>Linux kernel has a concept of
 <a href="https://en.wikipedia.org/wiki/Linux_namespaces">namespaces</a>. They simply allow
 to virtualize several kernel resources and to pretend to userspace they are
 running on their own computer. Namespaces are key concept of all container
 technologies like Docker, Podman, LXC and others.</p>
-
 <p>System allows you to manipulate with namespaces is via
 <a href="unshare">https://github.com/karelzak/util-linux/blob/master/sys-utils/unshare.1</a>
 command and system call. This way one can create private network namespace,
 which is not configured by default and can&rsquo;t connect to anything.</p>
-
 <pre><code>curl --silent example.com | wc -l
 46
 unshare -r -n curl example.com
 curl: (7) Couldn't connect to server
-</code></pre>
-
-<p>Command does following</p>
-
+</code></pre><p>Command does following</p>
 <ol>
 <li><code>-r, --map-root-user</code> maps current user and group id to root. Not that this
 is fully secure, because from non-namespaced point of view is this still the
 same user.</li>
 <li><code>-n, --net</code> create own empty network namespace</li>
 </ol>
-
 <p>So running <code>unshare -r -n go build</code> will ensure that <code>go build</code> does not have
 access to network at all.</p>
-
 <h2 id="containers">Containers</h2>
-
 <p>As I have mentioned namespaces are key for container technologies. And it is
 not surprising that both <a href="Docker">https://www.docker.com/</a> and
 <a href="Podman">https://podman.io</a>, and most likely all others, can do the same.</p>
-
 <pre><code>$ docker run alpine:latest ping -c 1 8.8.8.8
 PING 8.8.8.8 (8.8.8.8): 56 data bytes
 64 bytes from 8.8.8.8: seq=0 ttl=54 time=1.426 ms
@@ -150,16 +126,11 @@ PING 8.8.8.8 (8.8.8.8): 56 data bytes
 --- 8.8.8.8 ping statistics ---
 1 packets transmitted, 1 packets received, 0% packet loss
 round-trip min/avg/max = 1.426/1.426/1.426 ms
-</code></pre>
-
-<p>With network none</p>
-
+</code></pre><p>With network none</p>
 <pre><code>$ docker run --network=none alpine:latest ping -c1 8.8.8.8
 PING 8.8.8.8 (8.8.8.8): 56 data bytes
 ping: sendto: Network unreachable
-</code></pre>
-
-<p>Logo by Clker-Free-Vector-Images-3736@Pixbay: [<a href="https://pixabay.com/vectors/chain-broken-link-freedom-297842/">https://pixabay.com/vectors/chain-broken-link-freedom-297842/</a>]</p>
+</code></pre><p>Logo by Clker-Free-Vector-Images-3736@Pixbay: [https://pixabay.com/vectors/chain-broken-link-freedom-297842/]</p>
 
         </div>
       </article>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>qrget: easy to use privacy oriented cloudless file sharing - Miblog</title>
-  <meta name="generator" content="Hugo 0.58.3" />
+  <meta name="generator" content="Hugo 0.63.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
@@ -71,17 +71,11 @@ Why is this a problem? Actually there are plenty of solutions there
           <time itemprop="datePublished" datetime="2019-10-24T22:25:27&#43;02:00">2019.10.24</time>
         </p>
         <div class="post-content">
-          
-
-<h2 id="the-problem">The Problem</h2>
-
-<p>How to transfer files from my laptop to my cell phone.<br />
-<a href="https://github.com/vyskocilm/qrget#installation"><img src="https://raw.githubusercontent.com/vyskocilm/qrget/master/doc/screenshot.png" alt="qrget screenshot" /></a></p>
-
+          <h2 id="the-problem">The Problem</h2>
+<p>How to transfer files from my laptop to my cell phone.<br>
+<a href="https://github.com/vyskocilm/qrget#installation"><img src="https://raw.githubusercontent.com/vyskocilm/qrget/master/doc/screenshot.png" alt="qrget screenshot"></a></p>
 <h2 id="why-is-this-a-problem">Why is this a problem?</h2>
-
 <p>Actually there are plenty of solutions there</p>
-
 <ul>
 <li>Cloud based sharing: Google Disc, Dropbox, (Next|Own)Cloud, old fashioned FTP, SFTP, sending emails, Facebook Messenger, &hellip;</li>
 <li>Bluetooth</li>
@@ -89,45 +83,34 @@ Why is this a problem? Actually there are plenty of solutions there
 <li>USB transfer</li>
 <li>&hellip;maybe there are more options there &hellip;</li>
 </ul>
-
-<p>The key factor is that except Cloud based methods I would not call others as simple to use. I saw too many times Bluetooth unable to connect between various devices, or there are some machines, which lacks Bluetooth or NFC completely. USB cable is easier. It&rsquo;s almost always plugged in order to charge the phone, isn&rsquo;t it? But hell, what is <a href="https://www.howtogeek.com/192732/android-usb-connections-explained-mtp-ptp-and-usb-mass-storage/">MTP, PTP and where is my loved USB Mass Storage mode</a>?<br />
+<p>The key factor is that except Cloud based methods I would not call others as simple to use. I saw too many times Bluetooth unable to connect between various devices, or there are some machines, which lacks Bluetooth or NFC completely. USB cable is easier. It&rsquo;s almost always plugged in order to charge the phone, isn&rsquo;t it? But hell, what is <a href="https://www.howtogeek.com/192732/android-usb-connections-explained-mtp-ptp-and-usb-mass-storage/">MTP, PTP and where is my loved USB Mass Storage mode</a>?<br>
 For a Cloud &hellip; it simply does not feel right that we can&rsquo;t use decentralized technology (TCP/IP, HTTP) without a dependency on centralized server(s) somewhere. Geek inside me shouts: <strong>Devices MUST talk directly</strong>.</p>
-
 <h2 id="the-past">The past</h2>
-
 <p>I simply run Python builtin http server to server the files. I found the process as easy until I saw the empty faces of others seeing the steps I was doing:</p>
-
 <ol>
-<li><p>Run <a href="https://python.org">Python</a> builtin http server somewhere</p>
-
-<pre>python3 -m http.server
-</pre></li>
-
-<li><p>Find IP address using <code>ip adds show</code> in a similarly looking blob of text</p>
-
-<pre>2: wlp2s0: <broadcast,multicast,up,lower_up>mtu 1500 qdisc mq state UP group default qlen 1000
-    link/ether 10:f0:05:07:75:ab brd ff:ff:ff:ff:ff:ff
-    inet 192.168.1.203/24 brd 192.168.1.255 scope global dynamic noprefixroute wlp2s0
-       valid_lft 40987sec preferred_lft 40987sec
-    inet6 fdde:4e79:189f::960/128 scope global noprefixroute 
-       valid_lft forever preferred_lft forever</broadcast,multicast,up,lower_up> </pre></li>
-
-<li><p>Type the weird looking URL to phone browser</p>
-
-<pre>http://192.168.1.203:8000/
-</pre></li>
-
-<li><p>Browse, choose file and download</p></li>
+<li>
+<p>Run <a href="https://python.org">Python</a> builtin http server somewhere</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+</li>
+<li>
+<p>Find IP address using <code>ip adds show</code> in a similarly looking blob of text</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+</li>
+<li>
+<p>Type the weird looking URL to phone browser</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+</li>
+<li>
+<p>Browse, choose file and download</p>
+</li>
 </ol>
-
 <h2 id="simplicity">Simplicity</h2>
-
-<p><blockuote>“That’s been one of my mantras — focus and simplicity. Simple can be harder than complex: You have to work hard to get your thinking clean to make it simple. But it’s worth it in the end because once you get there, you can move mountains.”</p>
-
-<p>Steve Jobs, BusinessWeek, May 25, 1998</blockuote></p>
-
+<p><!-- raw HTML omitted -->“That’s been one of my mantras — focus and simplicity. Simple can be harder than complex: You have to work hard to get your thinking clean to make it simple. But it’s worth it in the end because once you get there, you can move mountains.”</p>
+<p>Steve Jobs, BusinessWeek, May 25, 1998<!-- raw HTML omitted --></p>
 <p>It is obvious that while using python HTTP server makes things doable for computer geeks, it&rsquo;s not the way regular can reproduce. The major design goal is simplicity, low number of dependencies and easy of use. Qrget is standalone binary, which prints QR Code to be consumed by phone and makes files or directories available using regular HTTP protocol. The only one assumption is that the computer is connected to the same <strong>wireless</strong> network.</p>
-
 <p>Interested? Visit <a href="https://github.com/vyskocilm/qrget">qrget&rsquo;s github page</a>.</p>
 
         </div>

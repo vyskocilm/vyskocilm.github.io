@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Adblocking in Turris Omnia - Miblog</title>
-  <meta name="generator" content="Hugo 0.58.3" />
+  <meta name="generator" content="Hugo 0.63.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
@@ -67,43 +67,27 @@ Options As router provides Doman Name Service for all devices in local network, 
           <time itemprop="datePublished" datetime="2018-12-29T22:39:57&#43;02:00">2018.12.29</time>
         </p>
         <div class="post-content">
-          
-
-<p>As a long time Firefox user I was horrified to use web browser with very limited blocking capabilities. However Samsung Browser is very handy tool for some sites. However the number of spam, scam, or porn pages and advertisements makes browsing there <strong>very</strong> unpleasant experience. Especially if your kids want to browse that way.</p>
-
-<p>However I bought <a href="https://omnia.turris.cz">Turris Omnia</a> especially because I wanted to hack around.<br />
-<img src="turris-omnia.png" alt="Turris Omnia Black" />
+          <p>As a long time Firefox user I was horrified to use web browser with very limited blocking capabilities. However Samsung Browser is very handy tool for some sites. However the number of spam, scam, or porn pages and advertisements makes browsing there <strong>very</strong> unpleasant experience. Especially if your kids want to browse that way.</p>
+<p>However I bought <a href="https://omnia.turris.cz">Turris Omnia</a> especially because I wanted to hack around.<br>
+<img src="turris-omnia.png" alt="Turris Omnia Black">
 Source: <a href="https://turris.cz">turris.cz</a></p>
-
 <h1 id="options">Options</h1>
-
 <p>As router provides Doman Name Service for all devices in local network, the most common way is to <strong>block</strong> DNS lookups for specified domains. It turns out there are three options available for Turris (or OpenWrt, the base operating system of Turris).</p>
-
 <ol>
 <li><a href="https://pi-hole.net/">Pi Hole</a> (<a href="https://doc.turris.cz/doc/cs/public/pihole">Turris doc</a>)</li>
 <li><a href="https://github.com/openwrt/packages/blob/master/net/adblock/files/README.md">OpenWrt Adblock</a> (<a href="https://doc.turris.cz/doc/en/public/adblock">Turris doc</a>)</li>
 <li><a href="https://github.com/openwrt/packages/blob/master/net/simple-adblock/files/README.md">OpenWrt Simple Adblock</a> (Turris doc not available)</li>
 </ol>
-
 <p>As user of Turris I can skip <code>simple-adblock</code> simply because it is not available there by default and it works with <em>dnsmasq</em> only. So there are two options only. And to be honest, simply reading the documentation it became clear that</p>
-
 <h3 id="pi-hole">Pi Hole</h3>
-
 <p>Is a complex solution with providing more than simple adblocking, including graphs, statistics and so. It must run in own LXC container and DHCP must be properly configured to be served by LXC container.</p>
-
 <h3 id="adblock">Adblock</h3>
-
 <p>Just install two packages <code>adblock</code> and <code>luci-app-adblock</code> and that&rsquo;s it. Adblock integrates with <code>kresd</code> (Knot DNS Resolver) natively, so there is very little to do.</p>
-
 <p>In fact, <code>adblock</code> simply convert all the sources to <code>/etc/kresd/adb_list.overall</code>, which is <code>DENY</code> policy file for Knot resolver. For network tools blocked domains appears as not existing.</p>
-
 <h2 id="not-everything-is-blocked">Not everything is blocked</h2>
-
 <p>In theory community maintained lists shall be enough, but the disadvantage of adblock is that you never know if new source will block site you want to or not. I did not find better way than downloading all the lists from <a href="https://github.com/openwrt/packages/blob/master/net/adblock/files/adblock.conf">adblock.conf</a> and grepping the results. Fortunately <code>adblock</code> comes with local blacklist, so admin can block additional domains by editing <code>/etc/adblock/adblock.blacklist</code>.</p>
-
 <p>So surprisingly, thanks OpenWrt community, is adblocking on router almost easy as installing extension for the browser.</p>
-
-<p><img src="screenshot_2018-12-29-turris-overview-luci.png" alt="" /></p>
+<p><img src="screenshot_2018-12-29-turris-overview-luci.png" alt=""></p>
 
         </div>
       </article>

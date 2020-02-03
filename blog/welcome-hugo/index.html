@@ -2,33 +2,42 @@
 <html lang="en-us">
 <head>
   <meta charset="utf-8">
-  <title>Categories - Miblog</title>
-  <meta name="generator" content="Hugo 0.63.1" />
+  <title>Welcome Hugo - Miblog</title>
+  <meta name="generator" content="Hugo 0.58.3" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
-  <meta name="description" content="">
+  <meta name="description" content="And bye https://getlektor CMS
+How RSS pushed me to change the CMS
+And welcome own domain
+The past My original blog used https://getlektor CMS to manage the content. I have tweaked the theme via Bootstrap based style, added great images. During writing I have realized that one can seamlessly use Markdown instead of HTML. I found out how to tweak templates to have things like Github ribbon and more. I have figured out how to add assets, how code highlights works and many more.">
   
   <meta name="keywords" content="Linux, Go, Python, Javascript, Typescript">
   <meta property="og:site_name" content="Miblog">
-  <meta property="og:title" content="Categories">
-  <meta property="og:url" content="https://vyskocil.org/categories/">
+  <meta property="og:title" content="Welcome Hugo">
+  <meta property="og:url" content="https://vyskocil.org/blog/welcome-hugo/">
   
-  <meta property="og:image" content="https://vyskocil.org/image/theme/note2.png">
+  <meta property="og:image" content="https://vyskocil.org/img/broken-egg.jpg">
   
   
-  <meta property="og:description" content="">
+  <meta property="og:description" content="And bye https://getlektor CMS
+How RSS pushed me to change the CMS
+And welcome own domain
+The past My original blog used https://getlektor CMS to manage the content. I have tweaked the theme via Bootstrap based style, added great images. During writing I have realized that one can seamlessly use Markdown instead of HTML. I found out how to tweak templates to have things like Github ribbon and more. I have figured out how to add assets, how code highlights works and many more.">
   
   <meta property="og:type" content="blog">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:creator" content="@vyskocilm">
-  <meta name="twitter:title" content="Categories">
-  <meta name="twitter:url" content="https://vyskocil.org/categories/">
+  <meta name="twitter:title" content="Welcome Hugo">
+  <meta name="twitter:url" content="https://vyskocil.org/blog/welcome-hugo/">
   
-  <meta name="twitter:description" content="">
+  <meta name="twitter:description" content="And bye https://getlektor CMS
+How RSS pushed me to change the CMS
+And welcome own domain
+The past My original blog used https://getlektor CMS to manage the content. I have tweaked the theme via Bootstrap based style, added great images. During writing I have realized that one can seamlessly use Markdown instead of HTML. I found out how to tweak templates to have things like Github ribbon and more. I have figured out how to add assets, how code highlights works and many more.">
   
   
-  <meta name="twitter:image:src" content="https://vyskocil.org/image/theme/note2.png">
+  <meta name="twitter:image:src" content="https://vyskocil.org/img/broken-egg.jpg">
   
   <link rel="shortcut icon" href="https://vyskocil.org/image/theme/favicon.ico">
    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
@@ -49,13 +58,105 @@
   
 </header>
 
-    <main class="main">
-      <section class="articles">
-        <h2>Recent Post</h2>
-        <div class="pure-g">
+    <main class="main main--single">
+  
+      
+      <article class="post"　itemscope itemtype="http://schema.org/BlogPosting">
+        <h1 class="post__title">Welcome Hugo</h1>
+        <p class="post__date">
+          <time itemprop="datePublished" datetime="2019-10-29T22:40:11&#43;01:00">2019.10.29</time>
+        </p>
+        <div class="post-content">
           
+
+<p>And bye <a href="Lektor">https://getlektor</a> CMS</p>
+
+<p>How RSS pushed me to change the CMS</p>
+
+<p>And welcome own domain</p>
+
+<h2 id="the-past">The past</h2>
+
+<p>My original blog used <a href="Lektor">https://getlektor</a> CMS to manage the content. I
+have tweaked the theme via Bootstrap based style, added great images. During
+writing I have realized that one can seamlessly use Markdown instead of HTML. I
+found out how to tweak templates to have things like Github ribbon and more. I
+have figured out how to add assets, how code highlights works and many more.</p>
+
+<p>It can be surprising to anyone who knows me to realize that I have spent quite
+some time to recreate the content under different CMS. I am reluctant to
+change working system, despite the flaws.</p>
+
+<p><img src="miblog-old.jpg" alt="Old miblog" /></p>
+
+<h2 id="here-come-rss-failure">Here come RSS failure</h2>
+
+<p>The reason I have decided to switch is
+<a href="https://en.wikipedia.org/wiki/RSS">RSS</a>. Unlike Hugo Lektor does not comes
+with content feed support. However it has a community, so
+<a href="lektor-atom">https://www.getlektor.com/plugins/lektor-atom/</a> plugin already
+exists. I did <code>lektor plugins add</code> as recommended, configured the system. And
+the next thing was an error.</p>
+
+<pre><code>lektor server
+Updating packages in /home/mvyskocil/.cache/lektor/packages/c2d475daf287310c95ec0e7ec344b28e for project
+Collecting lektor-atom==0.3
+  Could not find a version that satisfies the requirement lektor-atom==0.3 (from versions: 0.1, 0.2)
+No matching distribution found for lektor-atom==0.3
+</code></pre>
+
+<p>While <a href="https://pypi.org/project/lektor-atom/">Pypi</a> suggests, version 0.3 does
+exists, <code>lektor</code> have failed to install it. I did not found any other error.
+And during investigation I found out that lektor does comes with bundled python
+2.7 by default.</p>
+
+<pre><code>/usr/local/lib/lektor/bin/python 
+Python 2.7.16 (default, Mar 04 2019, 07:13:50) [GCC] on linux2
+Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
+&gt;&gt;&gt; 
+</code></pre>
+
+<h2 id="hugo-vs-lektor">Hugo vs Lektor</h2>
+
+<p>The biggest difference between Lektor and Hugo is the fact Hugo does have a lot
+of things bundled and ready to use (sitemaps, robots, RSS, ..). This made my
+investigation short and I made PoC of converting my old blog to Hugo.</p>
+
+<p>To summarize both systems I would say following</p>
+
+<p>Lektor excells at
+1. User friendliness
+2. Deploy to github pages is on one click
+3. Can be easilly configured</p>
+
+<p>Disadvantages are
+1. Can&rsquo;t make RSS running
+2. Fewer themes available
+3. Never learned how to make a draft of post</p>
+
+<p>Hugo excells at
+1. It have more things builtin and configured
+2. It has way more layouts available
+3. Community is bigger, so there are more results at SO and similar pages</p>
+
+<p>Disadvantages are
+1. It is pretty big and complex system
+2. Sometimes things does not work according documentation - like I was unable to tweak RSS output as much as I wanted
+3. Deployment is manual process and fixing issues then expects git mastery</p>
+
+<h2 id="sumary">Sumary</h2>
+
+<p>Both CMS are excellent and well thought systems. I would recommend Hugo for
+geeks which are not frightended by command line and with writing scripts. Like me.</p>
+
+<p>On the other hand using Lektor&rsquo;s UI to edit your blog is something other users
+might prefer against something like RSS. It served me well and … thanks for
+all the fish!</p>
+
+<p>Image by: Adam Meek [<a href="https://www.flickr.com/photos/adammeek/26117251845">https://www.flickr.com/photos/adammeek/26117251845</a>]</p>
+
         </div>
-      </section>
+      </article>
       
     </main>
     <footer class="footer">

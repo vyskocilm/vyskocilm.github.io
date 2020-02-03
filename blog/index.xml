@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Blogs on Miblog</title>
@@ -6,10 +6,43 @@
     <description>Recent content in Blogs on Miblog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 04 Nov 2019 10:26:04 +0100</lastBuildDate>
+    <lastBuildDate>Mon, 03 Feb 2020 22:24:45 +0100</lastBuildDate>
     
 	<atom:link href="https://vyskocil.org/blog/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Testify: make Go testing easy 3/3</title>
+      <link>https://vyskocil.org/blog/testify-make-go-testing-easy-3/</link>
+      <pubDate>Mon, 03 Feb 2020 22:24:45 +0100</pubDate>
+      
+      <guid>https://vyskocil.org/blog/testify-make-go-testing-easy-3/</guid>
+      <description>While Go comes with go test and a testing package by default, the experience can be better with testify package. Git hub page introduces it as Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
+By the end I found the resulting article as too long (~25 minutes) to read, so I split it into
+ Part1 introduces assert, talks briefly abot Python and C and shows basics of testify Part2 introduces table driven testing, more helpers like ElementsMatch or JSONeq Part3 gets more advanced with test suited and mocks  Test suites While testing documentation encourages table driven tests and subtests, there are many developers outside, who are used to write Smalltalk like unit tests and this style encourages writing test suites.</description>
+    </item>
+    
+    <item>
+      <title>Testify: make Go testing easy 2/3</title>
+      <link>https://vyskocil.org/blog/testify-make-go-testing-easy-2/</link>
+      <pubDate>Mon, 03 Feb 2020 22:02:59 +0100</pubDate>
+      
+      <guid>https://vyskocil.org/blog/testify-make-go-testing-easy-2/</guid>
+      <description>While Go comes with go test and a testing package by default, the experience can be better with testify package. Git hub page introduces it as Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
+By the end I found the resulting article as too long (~25 minutes) to read, so I split it into
+ Part1 introduces assert, talks briefly abot Python and C and shows basics of testify Part2 introduces table driven testing, more helpers like ElementsMatch or JSONeq Part3 gets more advanced with test suited and mocks  Table driven testing Table driven testing is common and usefull go idiom.</description>
+    </item>
+    
+    <item>
+      <title>Testify: make Go testing easy 1/3</title>
+      <link>https://vyskocil.org/blog/testify-make-go-testing-easy/</link>
+      <pubDate>Mon, 03 Feb 2020 22:02:55 +0100</pubDate>
+      
+      <guid>https://vyskocil.org/blog/testify-make-go-testing-easy/</guid>
+      <description>While Go comes with go test and a testing package by default, the experience can be better with testify package. Git hub page introduces it as Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
+By the end I found the resulting article as too long (~25 minutes) to read, so I split it into
+ Part1 introduces assert, talks briefly abot Python and C and shows basics of testify Part2 introduces table driven testing, more helpers like ElementsMatch or JSONeq Part3 gets more advanced with test suited and mocks  Standard approach Example as it comes with a testing package from the standard library.</description>
+    </item>
     
     <item>
       <title>Easy way to check go.mod replace via Linux namespaces</title>
@@ -30,7 +63,7 @@ The problem While go build is awesome tool, doing a lot of things in the backgro
       
       <guid>https://vyskocil.org/blog/correct-usage-of-sql-transaction-in-postgres-from-go/</guid>
       <description>Problem Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like https://example.com?fbclid=1234 and https://example.com?fbclid=5678 we wanted to merge. Code to normalize URL was easy to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared
-pq: unexpected Parse response &#39;C&#39;  The error message was telling me nothing.</description>
+1  pq: unexpected Parse response &amp;#39;C&amp;#39;   The error message was telling me nothing.</description>
     </item>
     
     <item>
@@ -50,7 +83,7 @@ Disclaimer: I wrote it in order to learn database/sql and to learn more about de
       <pubDate>Wed, 13 Feb 2019 22:56:28 +0200</pubDate>
       
       <guid>https://vyskocil.org/blog/speeding-your-ci-with-go-mod-download-again/</guid>
-      <description>Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image.</description>
+      <description>Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image. As I wrote recently, we do use monorepo with many go modules.</description>
     </item>
     
     <item>

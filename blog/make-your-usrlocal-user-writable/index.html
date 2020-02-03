@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Make your /usr/local user writable - Miblog</title>
-  <meta name="generator" content="Hugo 0.58.3" />
+  <meta name="generator" content="Hugo 0.63.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
@@ -64,41 +64,29 @@ What is root  Linux operating systems are multi user ones.">
           <time itemprop="datePublished" datetime="2018-01-21T22:18:29&#43;02:00">2018.01.21</time>
         </p>
         <div class="post-content">
-          
-
-<h1 id="about">About</h1>
-
+          <h1 id="about">About</h1>
 <p>I am the long term user of Linux based operating systems.  And as a C developer mostly working on stuff built by GNU autotools. Therefor I need to quickly build, install and test new versions of the software. I usually make changes to lower layers (like <a href="https://github.com/zeromq/czmq/pull/1833">zeromq/czmq</a>).</p>
-
 <p>Typical advice for Linux is  to <strong>not</strong> run things as a root!</p>
-
 <h3 id="what-is-root">What is root</h3>
-
 <blockquote>
 <p>Linux operating systems are multi user ones. Each user account have own documents and
 can&rsquo;t interfere with others. Except
 root. Root is a super user. It takes it all. Permission checks are not applied
 to this user. Never!</p>
 </blockquote>
-
 <h2 id="the-solution">The solution</h2>
-
 <p>The standard installation target for autotools based <code>make install</code> is <code>/usr/local</code>. This is path can be written by root. There are many ways to do to avoid this problem. You can install using <code>sudo</code> helper. You can configure <code>--prefix</code> and related variables like <code>PATH</code>, <code>PKG_CONFIG_PATH</code>, <code>LD_LIBRARY_PATH</code> and so.</p>
-
 <p>Or there is way more simpler thing to do</p>
-
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">$ sudo chown $myuser: /usr/local</code></pre></td></tr></table>
 </div>
 </div>
-
 <p>This is a tip from <a href="http://hintjens.com">Pieter Hintjens</a> book <a href="https://hintjens.gitbooks.io/scalable-c/content/chapter1.html">Scalable C</a>. I actually used all three ways, however cannot be more happy with user writable <code>/usr/local</code>.</p>
-
-<p>Logo by pxhere: [<a href="https://pxhere.com/en/photo/1267185">https://pxhere.com/en/photo/1267185</a>]</p>
+<p>Logo by pxhere: [https://pxhere.com/en/photo/1267185]</p>
 
         </div>
       </article>

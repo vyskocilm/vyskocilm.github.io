@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Go 111 Modules Monorepo and Shared Code - Miblog</title>
-  <meta name="generator" content="Hugo 0.58.3" />
+  <meta name="generator" content="Hugo 0.63.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
@@ -58,60 +58,34 @@
           <time itemprop="datePublished" datetime="2018-11-09T19:19:40&#43;02:00">2018.11.09</time>
         </p>
         <div class="post-content">
-          
-
-<p>I recently joined company as a Python developer. However it turns out there is bigger need to evolve their code written in golang (and PHP and Javascript). I am not an expert in go, so it took me a while to figure things out. However I love to learn new things and to solve new puzzles (the real ones, there is nothing more boring to solve artificial ones for me)</p>
-
+          <p>I recently joined company as a Python developer. However it turns out there is bigger need to evolve their code written in golang (and PHP and Javascript). I am not an expert in go, so it took me a while to figure things out. However I love to learn new things and to solve new puzzles (the real ones, there is nothing more boring to solve artificial ones for me)</p>
 <p>In this post I am going to present the way how we moved shared gode to new 1.11 compatible modules. If you want to know more about golang in monorepo, differences between github and gitlab and all the funny things I found, please continue.</p>
-
 <h1 id="problem-duplicated-code">Problem: duplicated code</h1>
-
 <p>Move shared code out. Do not repeat yourself. Do not copy code.</p>
-
 <p>Project I am working on is written as a few microservices. There are all the cool and modern stuff above like Dockers, Swarm, distributes, message queue and so. But from developer&rsquo;s point of view the biggest challenge is project structure. As we have joined already existing organization with a monorepo and working CI/CD system around, our proposals to use more smaller repositories were not accepted. There will be so many things needed to rebuild in order to achieve it and no one is going to pay for it.</p>
-
 <p>Because there was no one experienced in golang, devs took the easiest approach copy the shared code around. However that became too confusing as it&rsquo;s impossible to have a track and manually synchronize shared code. As go 1.11 got new <a href="https://github.com/golang/go/wiki/Modules">module system</a>, lets use it.</p>
-
 <h1 id="problem-monorepo-structure">Problem: Monorepo structure</h1>
-
 <p>I created a small repo mimicking the structure of the one we have.</p>
-
-<script src="https://gist.github.com/vyskocilm/33eb6220e5a32aad08322ce2fd00ee78.js"></script>
-
+<!-- raw HTML omitted -->
 <p>This works pretty well, all the microservices are places in a root of monorepo, where shared code lives under <code>g/</code> directory. You can build and test shared pieces independently and build and test the service code together with shared code. So far so good &hellip;.</p>
-
 <h1 id="problem-does-not-work-in-gitlab">Problem: does not work in gitlab</h1>
-
 <p>Monorepo lives in a private instance of gitlab, so let&rsquo;s move the code, change the naming and it should work. Except it does not. Despite the same structure, it can&rsquo;t find the shared code. Fortunately <code>go build</code> have <code>-v</code> and <code>-x</code> command switches, which helped me to track down the problem. Long story short. It turned out that there is a hidden protocol between code hosting and <code>go build</code>.</p>
-
 <pre><code>curl -s https://github.com/vyskocilm/gazpacho?go-get | grep go-import
  &lt;meta name=&quot;go-import&quot; content=&quot;github.com/vyskocilm/gazpacho git https://github.com/vyskocilm/gazpacho.git&quot;&gt;
-</code></pre>
-
-<p>The <code>meta</code> tag <code>go-import</code> turned out to be very important factor and it was the case where github and gitlab behaves differently. And as a result was <code>go build</code> failed to find shared code. And it turns out that previous incarnation worked somewhat differently than I wanted. I wanted to have shared code, but with independent smaller modules inside. So solution was simple. Add few more <code>go.mod</code> files to split the code even more. Now the code works well, except &hellip;</p>
-
+</code></pre><p>The <code>meta</code> tag <code>go-import</code> turned out to be very important factor and it was the case where github and gitlab behaves differently. And as a result was <code>go build</code> failed to find shared code. And it turns out that previous incarnation worked somewhat differently than I wanted. I wanted to have shared code, but with independent smaller modules inside. So solution was simple. Add few more <code>go.mod</code> files to split the code even more. Now the code works well, except &hellip;</p>
 <h1 id="problem-change-shared-code-and-service-code">Problem: change shared code and service code</h1>
-
 <p>Internally new module system calls <code>git</code> and places results under <code>~/go/pkg/mod</code> in somewhat complicated structure. The problem now is</p>
-
 <ol>
 <li>/me adds new method <code>Reload</code> to <code>g/cfg</code></li>
 <li>/me wants to use it in service code</li>
 <li><code>go build</code> clones not yet committed version from master, so fail to build</li>
 </ol>
-
 <p>Initially we have issue two merge requests for each change, but not having an ability to use new code or even worse, inability to fix typos in shared code in less than two requests was extremely unfriendly. Fortunately developers of golang have thought this. It most likely depends on a fact Google has monorepo as well, so they really need it to work as well. Solution for this is <a href="https://github.com/golang/go/wiki/Modules#when-should-i-use-the-replace-directive"><code>replace</code></a> directive. Here you can trick build system to use different repo. Or the better the different filesystem path. It works for <code>main</code> package, so in perfect solves the problem for service code. For shared ones, there is probably no way.</p>
-
 <pre><code># project1-serviceA/go.mod
 replace github.com/vyskocilm/gazpacho/g/cfg =&gt; ../g/cfg
-</code></pre>
-
-<p>The only one problem is that you can&rsquo;t use new dependencies this way, however this is being worked on and most likely will be fixed for 1.12. So we can end here &hellip;</p>
-
+</code></pre><p>The only one problem is that you can&rsquo;t use new dependencies this way, however this is being worked on and most likely will be fixed for 1.12. So we can end here &hellip;</p>
 <h1 id="problem-need-to-pass-gitlab-credentials-each-time">Problem: need to pass gitlab credentials each time</h1>
-
 <p>This is huge problem. Devs are going to hate you. Unfortunately golang itself does not provide such method. However as git itself is nowadays one of the most used tools, especially when it comes to CI and fetching the things there, here is the way. Using <code>insteadOf</code> you can rewrite git configuration to use ssh transport or to pass credentials</p>
-
 <pre><code># for devs: Use ssh, Luke!
 # source: https://gist.github.com/dmitshur/6927554
 git config --global url.&quot;git@gitlab.example.com:&quot;.insteadOf &quot;https://gitlab.example.com&quot;
@@ -121,29 +95,21 @@ git config --global url.&quot;git@gitlab.example.com:&quot;.insteadOf &quot;http
 # https://gitlab.com/gitlab-org/gitlab-ce/issues/45610
 before_script:
   - git config --global url.&quot;https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.example.com/&quot;.insteadOf &quot;https://gitlab.example.com/&quot;
-</code></pre>
-
-<h1 id="problem-there-are-no-more-problems">Problem: there are no more problems</h1>
-
+</code></pre><h1 id="problem-there-are-no-more-problems">Problem: there are no more problems</h1>
 <p>Major takeways</p>
-
 <ol>
 <li>I have discussed working monorepo structure compatible with golang modules</li>
 <li>I have talked about ways how to debug issues with <code>go build</code> and told you about <code>?go-get=1</code> protocol</li>
 <li>I presented a way how to push changes to shared and service code in one request</li>
 <li>And last but not least, I covered the way how to use <code>go build</code> against private git repositories</li>
 </ol>
-
-<p>Feel free to clone <a href="https://github.com/vyskocilm/gazpacho">Gazpacho</a> repo and give me feedback on how things are working for you.<br />
+<p>Feel free to clone <a href="https://github.com/vyskocilm/gazpacho">Gazpacho</a> repo and give me feedback on how things are working for you.<br>
 <a href="https://www.reddit.com/r/golang/comments/9viv50/how_i_solved_go_111_modules_private_monorepo_and/">Reddit thread</a></p>
-
 <blockquote>
 <p>Golang 1.11 modules, monorepo, private gitlab vs github - how this fits together: <a href="https://t.co/OntcaQEGYe">https://t.co/OntcaQEGYe</a> <a href="https://twitter.com/hashtag/golang?src=hash&amp;ref_src=twsrc%5Etfw">#golang</a> <a href="https://twitter.com/hashtag/gitlab?src=hash&amp;ref_src=twsrc%5Etfw">#gitlab</a> <a href="https://twitter.com/hashtag/monorepo?src=hash&amp;ref_src=twsrc%5Etfw">#monorepo</a> <a href="https://twitter.com/hashtag/git?src=hash&amp;ref_src=twsrc%5Etfw">#git</a> <a href="https://twitter.com/hashtag/github?src=hash&amp;ref_src=twsrc%5Etfw">#github</a></p>
-
 <p>— Michal Vyskocil (@vyskocilm) <a href="https://twitter.com/vyskocilm/status/1060818093948239872?ref_src=twsrc%5Etfw">9. listopadu 2018</a></p>
 </blockquote>
-
-<p>Logo by samthor@Flickr: [<a href="https://www.flickr.com/photos/samthor/5994939587">https://www.flickr.com/photos/samthor/5994939587</a>]</p>
+<p>Logo by samthor@Flickr: [https://www.flickr.com/photos/samthor/5994939587]</p>
 
         </div>
       </article>

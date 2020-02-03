@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Limiting Your Gorutines - Miblog</title>
-  <meta name="generator" content="Hugo 0.58.3" />
+  <meta name="generator" content="Hugo 0.63.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
@@ -61,55 +61,34 @@ Intro Gorutines are some kind of lightweight threads managed by userspace golang
           <time itemprop="datePublished" datetime="2018-10-10T19:11:24&#43;02:00">2018.10.10</time>
         </p>
         <div class="post-content">
-          
-
-<h1 id="limiting-your-goroutines">Limiting your goroutines</h1>
-
+          <h1 id="limiting-your-goroutines">Limiting your goroutines</h1>
 <p>How to properly implement goroutine pool in golang with input and output channel(s). Text expects knowledge about <a href="https://golang.org/">golang</a> and about <a href="https://tour.golang.org/concurrency/1">Go Concurency</a>. That means I am not going to explain what goroutine, channel or defer actually are.</p>
-
 <h2 id="intro">Intro</h2>
-
 <p>Gorutines are some kind of lightweight threads managed by userspace golang runtime. They save memory and context switches. Therefor it is possible to spawn literally <a href="https://rcoh.me/posts/why-you-can-have-a-million-go-routines-but-only-1000-java-threads/">Millions!</a> of them. However as BenPar^W Voltaire said</p>
-
-<p><img src="https://media.licdn.com/media/gcrc/dms/image/C4E12AQFoCyvG3y_XEA/article-cover_image-shrink_600_2000/0?e=1544659200&amp;v=beta&amp;t=nNlZk3EjA5HecFvdl52P0qsWxmeuBbLq81ESKDa04ms" alt="With great power comes great responsibility" /><br />
+<p><img src="https://media.licdn.com/media/gcrc/dms/image/C4E12AQFoCyvG3y_XEA/article-cover_image-shrink_600_2000/0?e=1544659200&amp;v=beta&amp;t=nNlZk3EjA5HecFvdl52P0qsWxmeuBbLq81ESKDa04ms" alt="With great power comes great responsibility"><br>
 <a href="https://www.linkedin.com/pulse/quote-great-power-comes-responsibility-voltaire-mba-bsee/">Source: linkedin</a></p>
-
 <p>It is not always practical to spawn your task million times. For example when you need to crawl web pages. It&rsquo;s good idea to NOT do it millions of times at the same time. On the other hand this is EXACTLY the kind of task golang and its goroutines shines at. The way of solving it is called <strong>pool</strong>, or workers, task queue, whatever you want. The idea is the same, we have a huge number N of tasks, which will be distributed to smaller number P of goroutines. Each goroutine will read next input from the channel, do the work and return result on a channel. This way we can parameterize the number of concurrent tasks we run. We can measure speed of execution using different numbers. Or we can ensure our code can deal with huge input without crashing the world :-)</p>
-
 <h2 id="deadlocks-everywhere">Deadlocks everywhere</h2>
-
 <p>The situation looks simple. Golang is an advanced language with builtin support for goroutines and concurrency. One just need to search the internet a bit to find an example. Knowing very little about golang, I naturally came to <a href="https://stackoverflow.com/questions/29342701/write-to-same-channel-with-multiple-goroutines">StackOverflow</a> to get the examples of READing data from the go channel. And the <a href="https://play.golang.org/p/ESq9he_WzS">code</a> looked simple and printed all numbers. That means we can <strong>distribute</strong> data from one channel and <strong>consume</strong> them from go routines. And golang runtime will make the magic behind to make this happen.</p>
-
 <p>So let&rsquo;s add writing to the an another output channel. We will read it from main thread and everything should work! Something like <a href="https://gobyexample.com/worker-pools">Worker pools @gobyexample.com</a>.</p>
-
 <p>And BAM! Code deadlock!</p>
-
-<p><img src="http://nikolar.com/wp-content/uploads/2013/09/trafficDeadlock.jpg" alt="deadlock" /><br />
+<p><img src="http://nikolar.com/wp-content/uploads/2013/09/trafficDeadlock.jpg" alt="deadlock"><br>
 <a href="http://nikolar.com/tag/deadlock/">Source: nikolar.com</a></p>
-
 <p>Program crashed and never print anything. Panic mode started. To make the long story short. Here is the key</p>
-
 <blockquote>
 <p>You MUST read from channel you&rsquo;re writing into, or BAD things will happen.</p>
 </blockquote>
-
 <p>My code was structured this way</p>
-
 <ol>
 <li>After some init, create P goroutines and execute them</li>
 <li>Write data to input channel</li>
 <li>Read results from output channel</li>
 </ol>
-
 <p>But program stopped in part 2, so reading of the data never happened, which blocked the send part inside goroutines, &hellip; there is no better word than <strong>deadlock</strong> to describe the situation.</p>
-
 <h2 id="the-solution">The solution</h2>
-
 <p>Fortunately golang provides a simple way to fix it. <em>Offload the second part to goroutine</em>. We can read from output channel immediately from main thread. Full code available on <a href="https://play.golang.org/p/hTHhgZy-KvV">https://play.golang.org</a> or below</p>
-
-<script src="https://gist.github.com/vyskocilm/d0c1a2f57a9b0821c00f31190c167781.js"></script>
-
-<p>Logo by samthor@Flickr: [<a href="https://www.flickr.com/photos/samthor/5994939587">https://www.flickr.com/photos/samthor/5994939587</a>]</p>
+<!-- raw HTML omitted -->
+<p>Logo by samthor@Flickr: [https://www.flickr.com/photos/samthor/5994939587]</p>
 
         </div>
       </article>

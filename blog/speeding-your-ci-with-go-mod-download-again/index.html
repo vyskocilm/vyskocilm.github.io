@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <title>Speeding Your Ci With Go Mod Download Again - Miblog</title>
-  <meta name="generator" content="Hugo 0.58.3" />
+  <meta name="generator" content="Hugo 0.63.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
-  <meta name="description" content="Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image.">
+  <meta name="description" content="Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image. As I wrote recently, we do use monorepo with many go modules.">
   
   <meta name="keywords" content="Linux, Go, Python, Javascript, Typescript">
   <meta property="og:site_name" content="Miblog">
@@ -17,7 +17,7 @@
   <meta property="og:image" content="https://vyskocil.org/img/gopher-flicker.jpg">
   
   
-  <meta property="og:description" content="Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image.">
+  <meta property="og:description" content="Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image. As I wrote recently, we do use monorepo with many go modules.">
   
   <meta property="og:type" content="blog">
   <meta name="twitter:card" content="summary_large_image">
@@ -25,7 +25,7 @@
   <meta name="twitter:title" content="Speeding Your Ci With Go Mod Download Again">
   <meta name="twitter:url" content="https://vyskocil.org/blog/speeding-your-ci-with-go-mod-download-again/">
   
-  <meta name="twitter:description" content="Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image.">
+  <meta name="twitter:description" content="Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image. As I wrote recently, we do use monorepo with many go modules.">
   
   
   <meta name="twitter:image:src" content="https://vyskocil.org/img/gopher-flicker.jpg">
@@ -58,25 +58,16 @@
           <time itemprop="datePublished" datetime="2019-02-13T22:56:28&#43;02:00">2019.02.13</time>
         </p>
         <div class="post-content">
-          
-
-<p>Running <code>go mod download</code> slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image. As I wrote recently, we do use <a href="https://vyskocilm.github.io/blog/go-111-modules-monorepo-and-shared-code">monorepo with many go modules</a>. So here is the short howto article how to squash all your go.mod files to one to simplify container build. And speedup your CI of course.</p>
-
+          <p>Running <code>go mod download</code> slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image. As I wrote recently, we do use <a href="https://vyskocilm.github.io/blog/go-111-modules-monorepo-and-shared-code">monorepo with many go modules</a>. So here is the short howto article how to squash all your go.mod files to one to simplify container build. And speedup your CI of course.</p>
 <h2 id="the-problem">The problem</h2>
-
 <p>The problem was that <code>go.mod</code> files are scattered around git repo and <code>go mod download</code> expects exactly one file to be used. There were two things comes into my mind</p>
-
 <ol>
 <li>regenerate directory structure as a part of Docker file and copy <code>go.mod</code> and <code>go.sum</code> files there and call <code>go mod download</code> for each of those</li>
 <li>or to squash all the files together to see what will happen</li>
 </ol>
-
 <p>Number one does not look like <em>sexy</em> approach and it will complicate the Dockerfile a lot. So the second one looked like better approach.</p>
-
 <h2 id="squashing">Squashing</h2>
-
 <p>Fortunately <code>go.mod</code> have script friendly structure, so could be easy to call a few unix tools to do the work. See an example from <a href="https://github.com/vyskocilm/gazpacho/blob/master/project1-serviceA/go.mod">example repository gazpacho</a></p>
-
 <pre><code>module github.com/vyskocilm/gazpacho/project1-serviceA
 
 require (
@@ -85,39 +76,53 @@ require (
 )
 
 replace github.com/vyskocilm/gazpacho/g/cfg =&gt; ../g/cfg
-</code></pre>
-
-<p>What we are interested in is the part between <code>require (</code> and <code>)</code> and it turned out that <code>sed</code> is a perfect tool for.</p>
-
-<pre><code class="language-sh">sed -n -e '/^require (/,/^)$/p' go.mod | sed '1d;/^)$d'
+</code></pre><p>What we are interested in is the part between <code>require (</code> and <code>)</code> and it turned out that <code>sed</code> is a perfect tool for.</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sed -n -e <span style="color:#e6db74">&#39;/^require (/,/^)$/p&#39;</span> go.mod | sed <span style="color:#e6db74">&#39;1d;/^)$d&#39;</span>
         github.com/vyskocilm/gazpacho/g/cfg v0.0.0-20181109075706-a4ae50527451
         gopkg.in/yaml.v2 v2.2.1 // indirect
-</code></pre>
-
-<p>First we print everything between <code>require (</code> and <code>)</code>, see <code>p</code>rint command in first <code>sed</code> invocation. Then we strip the first line (<code>1d</code>) and line with <code>)</code>.</p>
-
+</code></pre></td></tr></table>
+</div>
+</div><p>First we print everything between <code>require (</code> and <code>)</code>, see <code>p</code>rint command in first <code>sed</code> invocation. Then we strip the first line (<code>1d</code>) and line with <code>)</code>.</p>
 <p>Then we can  combine everything to such awesome shell magic.</p>
-
-<pre><code class="language-sh">find $(git rev-parse --show-toplevel) -mindepth 2 -name 'go.mod' | while read GOMOD
-do
-    sed -n -e '/^require (/,/^)$/p' &quot;${GOMOD}&quot; | sed '1d;/^)$/d'
-done | sort -u | grep -v 'internal.git.repo' &gt;&gt; go.mod
-</code></pre>
-
-<p>Which will
-1. find all <code>go.mod</code> files from your monorepo (ignoring the top level one, this is <code>-mindepth 2</code> is about)
-2. for <strong>each</strong> of those it will print the lines with dependencies
-3. then all the lines will be sorted, all duplicates removed
-4. additionally all dependencies points to internal repo were removed.-As <a href="/blog/go-111-modules-monorepo-and-shared-code">monorepo with many go modules</a> article discuss, we do use <code>replace</code> directive. We do not care tah much about downloading internal dependencies. They are in as a part of git checkout anyway. Additionally one would need to pass <code>gitlab</code> credentials into Docker build somehow. Better to not do it.</p>
-
-<h2 id="what-about-go-sum">What about go.sum</h2>
-
-<pre><code class="language-sh">find $(git rev-parse --show-toplevel) -mindepth 2 -name 'go.sum' | xargs sort -u | grep -v 'internal.git.repo' &gt; go.sum
-</code></pre>
-
-<p>There is nothing to show, format is line oriented, so friendly to unix tools without any hacking</p>
-
-<p>Logo by samthor@Flickr: [<a href="https://www.flickr.com/photos/samthor/5994939587">https://www.flickr.com/photos/samthor/5994939587</a>]</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">find <span style="color:#66d9ef">$(</span>git rev-parse --show-toplevel<span style="color:#66d9ef">)</span> -mindepth <span style="color:#ae81ff">2</span> -name <span style="color:#e6db74">&#39;go.mod&#39;</span> | <span style="color:#66d9ef">while</span> read GOMOD
+<span style="color:#66d9ef">do</span>
+    sed -n -e <span style="color:#e6db74">&#39;/^require (/,/^)$/p&#39;</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>GOMOD<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> | sed <span style="color:#e6db74">&#39;1d;/^)$/d&#39;</span>
+<span style="color:#66d9ef">done</span> | sort -u | grep -v <span style="color:#e6db74">&#39;internal.git.repo&#39;</span> &gt;&gt; go.mod
+</code></pre></td></tr></table>
+</div>
+</div><p>Which will</p>
+<ol>
+<li>find all <code>go.mod</code> files from your monorepo (ignoring the top level one, this is <code>-mindepth 2</code> is about)</li>
+<li>for <strong>each</strong> of those it will print the lines with dependencies</li>
+<li>then all the lines will be sorted, all duplicates removed</li>
+<li>additionally all dependencies points to internal repo were removed.-As <a href="/blog/go-111-modules-monorepo-and-shared-code">monorepo with many go modules</a> article discuss, we do use <code>replace</code> directive. We do not care tah much about downloading internal dependencies. They are in as a part of git checkout anyway. Additionally one would need to pass <code>gitlab</code> credentials into Docker build somehow. Better to not do it.</li>
+</ol>
+<h2 id="what-about-gosum">What about go.sum</h2>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">find <span style="color:#66d9ef">$(</span>git rev-parse --show-toplevel<span style="color:#66d9ef">)</span> -mindepth <span style="color:#ae81ff">2</span> -name <span style="color:#e6db74">&#39;go.sum&#39;</span> | xargs sort -u | grep -v <span style="color:#e6db74">&#39;internal.git.repo&#39;</span> &gt; go.sum
+</code></pre></td></tr></table>
+</div>
+</div><p>There is nothing to show, format is line oriented, so friendly to unix tools without any hacking</p>
+<p>Logo by samthor@Flickr: [https://www.flickr.com/photos/samthor/5994939587]</p>
 
         </div>
       </article>

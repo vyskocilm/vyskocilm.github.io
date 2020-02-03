@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Miblog</title>
@@ -6,10 +6,43 @@
     <description>Recent content on Miblog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 04 Nov 2019 10:26:04 +0100</lastBuildDate>
+    <lastBuildDate>Mon, 03 Feb 2020 22:24:45 +0100</lastBuildDate>
     
 	<atom:link href="https://vyskocil.org/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Testify: make Go testing easy 3/3</title>
+      <link>https://vyskocil.org/blog/testify-make-go-testing-easy-3/</link>
+      <pubDate>Mon, 03 Feb 2020 22:24:45 +0100</pubDate>
+      
+      <guid>https://vyskocil.org/blog/testify-make-go-testing-easy-3/</guid>
+      <description>While Go comes with go test and a testing package by default, the experience can be better with testify package. Git hub page introduces it as Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
+By the end I found the resulting article as too long (~25 minutes) to read, so I split it into
+ Part1 introduces assert, talks briefly abot Python and C and shows basics of testify Part2 introduces table driven testing, more helpers like ElementsMatch or JSONeq Part3 gets more advanced with test suited and mocks  Test suites While testing documentation encourages table driven tests and subtests, there are many developers outside, who are used to write Smalltalk like unit tests and this style encourages writing test suites.</description>
+    </item>
+    
+    <item>
+      <title>Testify: make Go testing easy 2/3</title>
+      <link>https://vyskocil.org/blog/testify-make-go-testing-easy-2/</link>
+      <pubDate>Mon, 03 Feb 2020 22:02:59 +0100</pubDate>
+      
+      <guid>https://vyskocil.org/blog/testify-make-go-testing-easy-2/</guid>
+      <description>While Go comes with go test and a testing package by default, the experience can be better with testify package. Git hub page introduces it as Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
+By the end I found the resulting article as too long (~25 minutes) to read, so I split it into
+ Part1 introduces assert, talks briefly abot Python and C and shows basics of testify Part2 introduces table driven testing, more helpers like ElementsMatch or JSONeq Part3 gets more advanced with test suited and mocks  Table driven testing Table driven testing is common and usefull go idiom.</description>
+    </item>
+    
+    <item>
+      <title>Testify: make Go testing easy 1/3</title>
+      <link>https://vyskocil.org/blog/testify-make-go-testing-easy/</link>
+      <pubDate>Mon, 03 Feb 2020 22:02:55 +0100</pubDate>
+      
+      <guid>https://vyskocil.org/blog/testify-make-go-testing-easy/</guid>
+      <description>While Go comes with go test and a testing package by default, the experience can be better with testify package. Git hub page introduces it as Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend.
+By the end I found the resulting article as too long (~25 minutes) to read, so I split it into
+ Part1 introduces assert, talks briefly abot Python and C and shows basics of testify Part2 introduces table driven testing, more helpers like ElementsMatch or JSONeq Part3 gets more advanced with test suited and mocks  Standard approach Example as it comes with a testing package from the standard library.</description>
+    </item>
     
     <item>
       <title>Easy way to check go.mod replace via Linux namespaces</title>
@@ -51,7 +84,7 @@ Why is this a problem? Actually there are plenty of solutions there
       
       <guid>https://vyskocil.org/blog/correct-usage-of-sql-transaction-in-postgres-from-go/</guid>
       <description>Problem Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like https://example.com?fbclid=1234 and https://example.com?fbclid=5678 we wanted to merge. Code to normalize URL was easy to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared
-pq: unexpected Parse response &#39;C&#39;  The error message was telling me nothing.</description>
+1  pq: unexpected Parse response &amp;#39;C&amp;#39;   The error message was telling me nothing.</description>
     </item>
     
     <item>
@@ -71,7 +104,7 @@ Disclaimer: I wrote it in order to learn database/sql and to learn more about de
       <pubDate>Wed, 13 Feb 2019 22:56:28 +0200</pubDate>
       
       <guid>https://vyskocil.org/blog/speeding-your-ci-with-go-mod-download-again/</guid>
-      <description>Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image.</description>
+      <description>Running go mod download slows down each CI run a lot. More dependencies increases time and it wastes the bandwidth again and again. As we do use special CI containers for the task, then go modules can be downloaded during container build phase and CI build will benefit from it. There are many articles about this topic. However most of them discuss one go module per repository or Docker image. As I wrote recently, we do use monorepo with many go modules.</description>
     </item>
     
     <item>
@@ -113,9 +146,9 @@ CORS look like simple thing to develop. Just add a few HTTP headers for regular 
       <guid>https://vyskocil.org/projects/</guid>
       <description>Some nice things I did in the past
  42ity: open source monitoring for DataCenters (team leader, founder, one of architects) qrget: easy to use privacy oriented file sharing Kinkip: JS Helper for Piknik game openSUSE/osc  ZeroMQ See https://github.com/zeromq
- (https://github.com/zeromq)[Graphviz support](https://github.com/zeromq/zproto/blob/master/src/zproto_dot.gsl) generating state machine diagrams for client and server.
- Added API model generator for zproto_codec_c and zproto_codec_c_v1.
- Added methods loading and saving zproto generated messages as ZPL.</description>
+  (https://github.com/zeromq)[Graphviz support](https://github.com/zeromq/zproto/blob/master/src/zproto_dot.gsl) generating state machine diagrams for client and server.
+  Added API model generator for zproto_codec_c and zproto_codec_c_v1.
+  Added methods loading and saving zproto generated messages as ZPL.</description>
     </item>
     
     <item>
@@ -137,26 +170,6 @@ CORS look like simple thing to develop. Just add a few HTTP headers for regular 
       <guid>https://vyskocil.org/blog/limiting-your-gorutines/</guid>
       <description>Limiting your goroutines How to properly implement goroutine pool in golang with input and output channel(s). Text expects knowledge about golang and about Go Concurency. That means I am not going to explain what goroutine, channel or defer actually are.
 Intro Gorutines are some kind of lightweight threads managed by userspace golang runtime. They save memory and context switches. Therefor it is possible to spawn literally Millions! of them. However as BenPar^W Voltaire said</description>
-    </item>
-    
-    <item>
-      <title>&#39;Modern&#39; Javascript Development for Oldies</title>
-      <link>https://vyskocil.org/blog/modern-javascript-development-for-oldies/</link>
-      <pubDate>Wed, 04 Apr 2018 22:45:29 +0200</pubDate>
-      
-      <guid>https://vyskocil.org/blog/modern-javascript-development-for-oldies/</guid>
-      <description>My Javascript experience When I started my career, I was working as Junior Developer on web based application. We have had parts written in Java Server Pages, which was great technology combining elegance of PHP with easy to use of Java. We had something in Java servlets, which allows us easier testing and compilation up front. Other parts were in PL/SQL. And of course, the Javascript. And most of our clients has been using Internet Explorer 6 at the time!</description>
-    </item>
-    
-    <item>
-      <title>Make your /usr/local user writable</title>
-      <link>https://vyskocil.org/blog/make-your-usrlocal-user-writable/</link>
-      <pubDate>Sun, 21 Jan 2018 22:18:29 +0200</pubDate>
-      
-      <guid>https://vyskocil.org/blog/make-your-usrlocal-user-writable/</guid>
-      <description>About I am the long term user of Linux based operating systems. And as a C developer mostly working on stuff built by GNU autotools. Therefor I need to quickly build, install and test new versions of the software. I usually make changes to lower layers (like zeromq/czmq).
-Typical advice for Linux is to not run things as a root!
-What is root  Linux operating systems are multi user ones.</description>
     </item>
     
   </channel>

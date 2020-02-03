@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8">
   <title>Correct Usage of Sql Transaction in Postgres From Go - Miblog</title>
-  <meta name="generator" content="Hugo 0.58.3" />
+  <meta name="generator" content="Hugo 0.63.1" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="author" content="Michal Vyskocil">
   
   <meta name="description" content="Problem Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like https://example.com?fbclid=1234 and https://example.com?fbclid=5678 we wanted to merge. Code to normalize URL was easy to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared
-pq: unexpected Parse response &#39;C&#39;  The error message was telling me nothing.">
+1  pq: unexpected Parse response &#39;C&#39;   The error message was telling me nothing.">
   
   <meta name="keywords" content="Linux, Go, Python, Javascript, Typescript">
   <meta property="og:site_name" content="Miblog">
@@ -19,7 +19,7 @@ pq: unexpected Parse response &#39;C&#39;  The error message was telling me noth
   
   
   <meta property="og:description" content="Problem Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like https://example.com?fbclid=1234 and https://example.com?fbclid=5678 we wanted to merge. Code to normalize URL was easy to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared
-pq: unexpected Parse response &#39;C&#39;  The error message was telling me nothing.">
+1  pq: unexpected Parse response &#39;C&#39;   The error message was telling me nothing.">
   
   <meta property="og:type" content="blog">
   <meta name="twitter:card" content="summary_large_image">
@@ -28,7 +28,7 @@ pq: unexpected Parse response &#39;C&#39;  The error message was telling me noth
   <meta name="twitter:url" content="https://vyskocil.org/blog/correct-usage-of-sql-transaction-in-postgres-from-go/">
   
   <meta name="twitter:description" content="Problem Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like https://example.com?fbclid=1234 and https://example.com?fbclid=5678 we wanted to merge. Code to normalize URL was easy to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared
-pq: unexpected Parse response &#39;C&#39;  The error message was telling me nothing.">
+1  pq: unexpected Parse response &#39;C&#39;   The error message was telling me nothing.">
   
   
   <meta name="twitter:image:src" content="https://vyskocil.org/img/postgres-flicker.jpg">
@@ -61,82 +61,100 @@ pq: unexpected Parse response &#39;C&#39;  The error message was telling me noth
           <time itemprop="datePublished" datetime="2019-05-21T23:02:31&#43;02:00">2019.05.21</time>
         </p>
         <div class="post-content">
-          
-
-<h2 id="problem">Problem</h2>
-
+          <h2 id="problem">Problem</h2>
 <p>Once upon a time I got a task to merge duplicate URLs in our production database. It turned out that there were a lot of same urls like <code>https://example.com?fbclid=1234</code> and <code>https://example.com?fbclid=5678</code> we wanted to merge.  Code to normalize URL was easy
 to develop. Code to migrate the database looked easy as weel. Until I turned the transaction on. Then very cryptic message appeared</p>
-
-<pre><code class="language-sh"> pq: unexpected Parse response 'C'
-</code></pre>
-
-<p>The error message was telling me <em>nothing</em>. And what is worse <a href="https://duck.com">ducking</a> did not revealed anything. Except notes about Postgres protocol internals., which was something I did not wanted to dig into.  It was a hint from <a href="https://github.com/karolhrdina">@karolhrdina</a> who have explained me the root cause well enough, so I can share my experience in my blog. Lessons learned - always work with a great colleagues, you can learn a lot from them!</p>
-
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh"> pq: unexpected Parse response <span style="color:#e6db74">&#39;C&#39;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>The error message was telling me <em>nothing</em>. And what is worse <a href="https://duck.com">ducking</a> did not revealed anything. Except notes about Postgres protocol internals., which was something I did not wanted to dig into.  It was a hint from <a href="https://github.com/karolhrdina">@karolhrdina</a> who have explained me the root cause well enough, so I can share my experience in my blog. Lessons learned - always work with a great colleagues, you can learn a lot from them!</p>
 <p>Following text assume reader know about Go, particularly <code>database/sql</code> and <code>lib/pq</code>,  Postgres or SQL databases in general.</p>
-
 <h2 id="the-code">The code</h2>
-
 <p>Following snippet omits a lot of details, but shows the algorithm</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">rows</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Query</span>(<span style="color:#e6db74">&#34;SELECT id, url, visists FROM schema.url WHERE url LIKE $1 ORDER BY id&#34;</span>, <span style="color:#a6e22e">pattern</span>)
 
-<pre><code class="language-go">rows, err := tx.Query(&quot;SELECT id, url, visists FROM schema.url WHERE url LIKE $1 ORDER BY id&quot;, pattern)
-
-for rows.Next() {
-        err = rows.Scan(&amp;id, &amp;url, &amp;visits)
-        urlNormalized := URLNormalize(url)
-        if url != urlNormalized {
-                _, err = tx.Exec(&quot;INSERT INTO schema.url AS u (url, visits) VALUES ($1, 1) ON CONFLICT url DO UPDATE SET visists=u.visists+$2;&quot;, urlNormalized, vists)
-                _, err = tx.Exec(&quot;DELETE FROM schema.url WHERE id=$1&quot;, id)
+<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">rows</span>.<span style="color:#a6e22e">Next</span>() {
+        <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rows</span>.<span style="color:#a6e22e">Scan</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">id</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">url</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">visits</span>)
+        <span style="color:#a6e22e">urlNormalized</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">URLNormalize</span>(<span style="color:#a6e22e">url</span>)
+        <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">url</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">urlNormalized</span> {
+                <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Exec</span>(<span style="color:#e6db74">&#34;INSERT INTO schema.url AS u (url, visits) VALUES ($1, 1) ON CONFLICT url DO UPDATE SET visists=u.visists+$2;&#34;</span>, <span style="color:#a6e22e">urlNormalized</span>, <span style="color:#a6e22e">vists</span>)
+                <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Exec</span>(<span style="color:#e6db74">&#34;DELETE FROM schema.url WHERE id=$1&#34;</span>, <span style="color:#a6e22e">id</span>)
         }
 }
-</code></pre>
-
-<ol>
+</code></pre></td></tr></table>
+</div>
+</div><ol>
 <li>For all urls matching the bad pattern do</li>
 <li>Try to normalize and if there is normalized version then</li>
 <li>UPSERT new entry or increase a number of visits</li>
 <li>&hellip; and program crashes</li>
 </ol>
-
 <p>The problem I was facing is connected with how Postgres protocol works. It turns out that you can&rsquo;t call <code>Exec</code> if you did not read all the data from previous <code>Query</code>. The problem is that most of Postgres drivers including its own<code>libpq</code> does <em>fetch all the rows</em> by default. It gives the false impression that following code is legal and works.  Go driver <code>lib/pq</code> does not do it. <code>plpgsql</code> does handle this case well. Other language bindings fetch the data by default.</p>
-
 <p>However fetching the data was not an option as there are millions of entries. And using different language than Go was impractical. Url normalization has been written in Go and there are huge differences between language parsers of URLs between languages.  For example PHP handles query strings in really <a href="https://www.php.net/manual/en/function.parse-str.php#76792">bizzare</a> way incompatible with CGI BIN, Perl and any other language. One can build Go code as (C like) shared library, but that would be somewhat big effort.</p>
-
 <p>Fetching data was an option, however given the number of entries, one would need to play with <code>LIMIT</code> and <code>OFFSET</code> to achieve reasonable size of input data.</p>
-
 <h2 id="do-it-as-plpgsql">Do it as plpgsql</h2>
-
 <p>There is object called <a href="https://www.postgresql.org/docs/10/plpgsql-cursors.html">cursor</a>. Cursors are intended exactly for this use case. They <strong>encapsulates</strong> the query and one can read a few results at the time. And <code>plpgsql</code> uses cursors under the hood. It turns out <code>CURSOR</code> can be used from Go code as well</p>
-
 <p>So Go code changes a bit. There is no <code>*sql.Rows</code> and no <code>Next()</code> method to be used in the loop.</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Exec</span>(<span style="color:#e6db74">&#34;DECLARE url_cur CURSOR FOR SELECT id, url, visits FROM schema.url WHERE url LIKE $1 ORDER BY id&#34;</span>, <span style="color:#a6e22e">pattern</span>)
+<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Exec</span>(<span style="color:#e6db74">&#34;CLOSE url_cur&#34;</span>)
 
-<pre><code class="language-go">_, err = tx.Exec(&quot;DECLARE url_cur CURSOR FOR SELECT id, url, visits FROM schema.url WHERE url LIKE $1 ORDER BY id&quot;, pattern)
-defer tx.Exec(&quot;CLOSE url_cur&quot;)
-
-for {
-        err = tx.QueryRow(&quot;FETCH NEXT FROM url_cur&quot;).Scan(&amp;id, &amp;url, &amp;visits)
-	if err == sql.ErrNoRows {
-	        break
-	} else if err != nil {
-	        _ = tx.Rollback()
-		panic(err)
+<span style="color:#66d9ef">for</span> {
+        <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">QueryRow</span>(<span style="color:#e6db74">&#34;FETCH NEXT FROM url_cur&#34;</span>).<span style="color:#a6e22e">Scan</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">id</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">url</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">visits</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">sql</span>.<span style="color:#a6e22e">ErrNoRows</span> {
+	        <span style="color:#66d9ef">break</span>
+	} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+	        <span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">tx</span>.<span style="color:#a6e22e">Rollback</span>()
+		panic(<span style="color:#a6e22e">err</span>)
 	}
-        // call tx.Exec with UPSERT and DELETE
-}
-</code></pre>
-
-<p>The advantages are</p>
-
+        <span style="color:#75715e">// call tx.Exec with UPSERT and DELETE
+</span><span style="color:#75715e"></span>}
+</code></pre></td></tr></table>
+</div>
+</div><p>The advantages are</p>
 <ol>
 <li>No new language in the stack, neither complicated integration of Go code into another language</li>
 <li>It is efficient and works with one entry at the time</li>
 <li>There are minimal changes to Go code</li>
 <li>It works, data are written on <code>tx.Commit()</code></li>
 </ol>
-
 <p>Big thanks comes to <a href="https://github.com/hypnoglow">@hypnoglow</a> and his comment at Github <a href="https://github.com/lib/pq/issues/635#issuecomment-327800640">issue#635</a></p>
-
-<p>Logo by kubina@Flickr: [<a href="https://www.flickr.com/photos/kubina/912714753">https://www.flickr.com/photos/kubina/912714753</a>]</p>
+<p>Logo by kubina@Flickr: [https://www.flickr.com/photos/kubina/912714753]</p>
 
         </div>
       </article>
